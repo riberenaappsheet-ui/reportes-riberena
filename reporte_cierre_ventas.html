@@ -181,6 +181,97 @@
     font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif;
   }
 
+  /* ── FILA CLICKEABLE ── */
+  tbody tr.clickable { cursor: pointer; transition: background .15s; }
+  tbody tr.clickable:hover { background: #E8F4FD !important; }
+  tbody tr.clickable td:first-child { position: relative; }
+  tbody tr.clickable td:first-child::after {
+    content: ' ↗'; font-size: 10px; color: var(--acento);
+    opacity: 0; transition: opacity .15s;
+  }
+  tbody tr.clickable:hover td:first-child::after { opacity: 1; }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,35,66,.55);
+    backdrop-filter: blur(3px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--blanco);
+    border-radius: 12px;
+    width: 100%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(10,35,66,.3);
+    overflow: hidden;
+    transform: translateY(16px);
+    transition: transform .2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    background: var(--azul); color: var(--blanco);
+    padding: 18px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .modal-header-info { display: flex; align-items: center; gap: 12px; }
+  .modal-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--acento);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; color: var(--azul); font-weight: 700; flex-shrink: 0;
+  }
+  .modal-nombre { font-family: 'DM Serif Display', serif; font-size: 16px; }
+  .modal-sub { font-size: 10px; color: var(--acento); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .modal-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,.1); border: none;
+    color: var(--blanco); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s; flex-shrink: 0;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .modal-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .modal-kpi {
+    background: var(--gris-bg); border-radius: var(--radio);
+    padding: 12px 10px; text-align: center;
+  }
+  .modal-kpi-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gris-texto); font-weight: 600; margin-bottom: 4px; }
+  .modal-kpi-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--azul); }
+  .modal-kpi.total .modal-kpi-val { color: var(--azul-claro); font-size: 15px; }
+  .modal-saldo {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #FFF7ED; border: 1px solid #FED7AA;
+    border-radius: var(--radio); padding: 12px 16px;
+  }
+  .modal-saldo-label { font-size: 11px; font-weight: 600; color: #92400E; }
+  .modal-saldo-val { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: #92400E; }
+  .modal-saldo.sin-dato { background: var(--gris-bg); border-color: var(--gris-borde); }
+  .modal-saldo.sin-dato .modal-saldo-label,
+  .modal-saldo.sin-dato .modal-saldo-val { color: var(--gris-texto); }
+  .modal-map-wrap {
+    border-radius: var(--radio); overflow: hidden;
+    border: 1px solid var(--gris-borde); position: relative;
+  }
+  .modal-map-wrap iframe { width: 100%; height: 210px; border: none; display: block; }
+  .modal-map-label {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(10,35,66,.75); color: #fff;
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    pointer-events: none;
+  }
+  .modal-no-ubicacion {
+    background: var(--gris-bg); border: 1px dashed var(--gris-borde);
+    border-radius: var(--radio); padding: 24px;
+    text-align: center; color: var(--gris-texto); font-size: 12px;
+  }
+
   /* ── PRINT ── */
   @media print {
     @page { size: A4; margin: 14mm 12mm; }
@@ -302,11 +393,11 @@
     <div>
       <div class="section-title">Resumen de Clientes Atendidos</div>
       <table>
-        <thead><tr><th>Cliente</th><th>Efectivo</th><th>Transferencia</th><th>Total Venta</th></tr></thead>
+        <thead><tr><th>Cliente</th><th style="text-align:center">Tipo de Venta</th><th>Efectivo</th><th>Transferencia</th><th>Total Venta</th><th style="text-align:center;width:36px"></th></tr></thead>
         <tbody id="tabla-clientes"></tbody>
         <tfoot>
           <tr>
-            <td>Total</td>
+            <td colspan="2">Total</td>
             <td id="sum-efectivo">L. 0.00</td>
             <td id="sum-transf">L. 0.00</td>
             <td id="sum-venta">L. 0.00</td>
@@ -461,16 +552,28 @@ function render() {
 
   const tbC = document.getElementById("tabla-clientes");
   let sE=0, sT=0, sV=0;
-  D.clientes.forEach(row => {
-    sE += Number(row.efectivo)      || 0;
-    sT += Number(row.transferencia) || 0;
-    sV += Number(row.totalVenta)    || 0;
-    tbC.innerHTML += `<tr>
-      <td>${row.cliente}</td>
+  D.clientes.forEach((row, idx) => {
+    sE += cleanNum(row.efectivo);
+    sT += cleanNum(row.transferencia);
+    sV += cleanNum(row.totalVenta);
+    const tr = document.createElement('tr');
+    tr.className = 'clickable';
+    tr.dataset.idx = idx;
+    const tipo = (row.tipoVenta || '').toUpperCase();
+    const tipoBadge = tipo === 'CREDITO' || tipo === 'CRÉDITO'
+      ? '<span style="background:#FEE2E2;color:#DC2626;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.4px;white-space:nowrap">CRÉDITO</span>'
+      : tipo === 'CONTADO'
+      ? '<span style="background:#DCFCE7;color:#059669;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.4px;white-space:nowrap">CONTADO</span>'
+      : '<span style="background:var(--gris-bg);color:var(--gris-texto);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap">—</span>';
+    tr.innerHTML = `
+      <td>${row.cliente || '<em style="color:var(--gris-texto)">Sin nombre</em>'}</td>
+      <td style="text-align:center">${tipoBadge}</td>
       <td>${L(row.efectivo)}</td>
       <td>${L(row.transferencia)}</td>
       <td>${L(row.totalVenta)}</td>
-    </tr>`;
+      <td style="text-align:center;color:var(--acento);font-size:14px">›</td>`;
+    tr.addEventListener('click', () => abrirModal(row));
+    tbC.appendChild(tr);
   });
   document.getElementById("sum-efectivo").textContent = L(sE);
   document.getElementById("sum-transf").textContent   = L(sT);
@@ -507,7 +610,135 @@ function compartirWhatsApp() {
   window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
 }
 
+
+// ── MODAL CLIENTE ──────────────────────────────────────────────────────────
+function abrirModal(row) {
+  const nombre = row.cliente || 'Sin nombre';
+
+  // Avatar: primera letra del nombre
+  document.getElementById('m-avatar').textContent = nombre.trim().charAt(0).toUpperCase() || '?';
+  document.getElementById('m-nombre').textContent  = nombre;
+
+  // Badge tipo de venta en modal
+  const tipo = (row.tipoVenta || '').toUpperCase();
+  const tipoBadgeModal = tipo === 'CREDITO' || tipo === 'CRÉDITO'
+    ? '<span style="background:rgba(220,38,38,.2);color:#FCA5A5;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.6px">CRÉDITO</span>'
+    : tipo === 'CONTADO'
+    ? '<span style="background:rgba(5,150,105,.2);color:#6EE7B7;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.6px">CONTADO</span>'
+    : '<span style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.6px">Sin tipo</span>';
+  document.getElementById('m-tipo-badge').innerHTML = tipoBadgeModal;
+  document.getElementById('m-efectivo').textContent     = L(row.efectivo);
+  document.getElementById('m-transferencia').textContent= L(row.transferencia);
+  document.getElementById('m-totalventa').textContent   = L(row.totalVenta);
+
+  // Saldo Crédito
+  const saldoWrap = document.getElementById('m-saldo-wrap');
+  const saldoEl   = document.getElementById('m-saldo');
+  if (row.saldoCredito !== undefined && row.saldoCredito !== '' && row.saldoCredito !== null) {
+    saldoEl.textContent = L(row.saldoCredito);
+    saldoWrap.className = 'modal-saldo';
+  } else {
+    saldoEl.textContent = 'No disponible';
+    saldoWrap.className = 'modal-saldo sin-dato';
+  }
+
+  // Mapa Ubicación (formato AppSheet LatLong: "15.123456, -87.654321")
+  const mapaContainer = document.getElementById('m-mapa-container');
+  if (row.ubicacion && String(row.ubicacion).trim() !== '') {
+    const coords = String(row.ubicacion).trim().split(',');
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0].trim());
+      const lng = parseFloat(coords[1].trim());
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const zoom = 16;
+        const label = encodeURIComponent(nombre);
+        // OpenStreetMap embed — no requiere API key
+        const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.003}%2C${lat-0.003}%2C${lng+0.003}%2C${lat+0.003}&layer=mapnik&marker=${lat}%2C${lng}`;
+        const osmLink = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${zoom}/${lat}/${lng}`;
+        mapaContainer.innerHTML = `
+          <div class="modal-map-wrap">
+            <iframe src="${osmUrl}" loading="lazy" title="Ubicación de ${nombre}"></iframe>
+            <span class="modal-map-label">📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+          </div>
+          <a href="${osmLink}" target="_blank" rel="noopener"
+             style="display:block;text-align:center;font-size:11px;color:var(--azul-claro);margin-top:6px;text-decoration:none;">
+            Ver en mapa completo ↗
+          </a>`;
+      } else {
+        mapaContainer.innerHTML = '<div class="modal-no-ubicacion">📍 Coordenadas inválidas</div>';
+      }
+    } else {
+      mapaContainer.innerHTML = '<div class="modal-no-ubicacion">📍 Formato de ubicación no reconocido</div>';
+    }
+  } else {
+    mapaContainer.innerHTML = '<div class="modal-no-ubicacion">📍 Ubicación no registrada para este cliente</div>';
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+// Cerrar con ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+
 window.addEventListener("DOMContentLoaded", render);
 </script>
+
+<!-- ── MODAL CLIENTE ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-avatar" id="m-avatar">?</div>
+        <div>
+          <div class="modal-nombre" id="m-nombre">—</div>
+          <div id="m-tipo-badge" style="margin-top:4px"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')" aria-label="Cerrar">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- KPIs venta -->
+      <div class="modal-kpis">
+        <div class="modal-kpi">
+          <div class="modal-kpi-label">Efectivo</div>
+          <div class="modal-kpi-val" id="m-efectivo">—</div>
+        </div>
+        <div class="modal-kpi">
+          <div class="modal-kpi-label">Transferencia</div>
+          <div class="modal-kpi-val" id="m-transferencia">—</div>
+        </div>
+        <div class="modal-kpi total">
+          <div class="modal-kpi-label">Total Venta</div>
+          <div class="modal-kpi-val" id="m-totalventa">—</div>
+        </div>
+      </div>
+
+      <!-- Saldo Crédito -->
+      <div class="modal-saldo" id="m-saldo-wrap">
+        <span class="modal-saldo-label">💳 Saldo Crédito</span>
+        <span class="modal-saldo-val" id="m-saldo">—</span>
+      </div>
+
+      <!-- Mapa Ubicación -->
+      <div id="m-mapa-container"></div>
+
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
