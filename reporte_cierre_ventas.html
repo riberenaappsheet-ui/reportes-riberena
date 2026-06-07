@@ -326,11 +326,17 @@
 </div><!-- /page-wrapper -->
 
 <script>
+// Limpia comas de miles antes de parsear (AppSheet envía "5,523.00")
+const cleanNum = v => parseFloat(String(v).replace(/,/g, "")) || 0;
 const L = v => {
-  const n = parseFloat(v) || 0;
+  const n = cleanNum(v);
   return "L. " + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
-const U = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const U = v => {
+  const n = cleanNum(v);
+  return Number.isInteger(n) ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                             : n.toLocaleString("es-HN");
+};
 
 function p(name, fallback = "") {
   const val = new URLSearchParams(window.location.search).get(name);
@@ -429,11 +435,11 @@ function render() {
   document.getElementById("d-hora-fin").textContent    = D.horaFin;
   document.getElementById("d-responsable").textContent = D.responsable;
   document.getElementById("d-estatus").textContent     = D.estatus;
-  document.getElementById("d-clientes").textContent      = D.totalClientes;
+  document.getElementById("d-clientes").textContent      = Math.round(cleanNum(D.totalClientes));
   document.getElementById("d-total-venta").textContent   = L(D.totalVenta);
   document.getElementById("d-total-efectivo").textContent= L(D.totalEfectivo);
-  document.getElementById("d-total-lts").textContent     = U(D.totalLts) + " Lts";
-  document.getElementById("d-total-prod").textContent    = D.totalProductos;
+  document.getElementById("d-total-lts").textContent     = Math.round(cleanNum(D.totalLts)).toLocaleString("es-HN") + " Lts";
+  document.getElementById("d-total-prod").textContent    = Math.round(cleanNum(D.totalProductos)).toLocaleString("es-HN");
   document.getElementById("k-transf").textContent  = L(D.totalTransferencia);
   document.getElementById("k-dep").textContent      = L(D.totalDeposito);
   document.getElementById("k-egr").textContent      = L(D.totalEgresos);
