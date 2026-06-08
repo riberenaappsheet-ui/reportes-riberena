@@ -272,6 +272,33 @@
     text-align: center; color: var(--gris-texto); font-size: 12px;
   }
 
+  /* ── SECCIÓN AUDITORÍA ── */
+  .auditoria-tabla thead tr { background: #164474; }
+  .auditoria-tabla tfoot tr { background: #0A2342; }
+  .diff-ok   { color: var(--verde); font-weight: 700; font-family: 'DM Mono', monospace; }
+  .diff-bad  { color: var(--rojo);  font-weight: 700; font-family: 'DM Mono', monospace; }
+  .audit-row-bad { background: #FEF2F2 !important; }
+  .audit-row-bad td { color: #7F1D1D; }
+  .audit-badge-ok  { background:#DCFCE7; color:var(--verde); padding:2px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:.4px; white-space:nowrap; }
+  .audit-badge-bad { background:#FEE2E2; color:var(--rojo);  padding:2px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:.4px; white-space:nowrap; }
+  .audit-alert {
+    display: flex; align-items: center; gap: 10px;
+    background: #FEF2F2; border: 1px solid #FECACA;
+    border-radius: var(--radio); padding: 12px 16px; font-size: 12px; color: #991B1B;
+  }
+  .audit-ok-banner {
+    display: flex; align-items: center; gap: 10px;
+    background: #F0FDF4; border: 1px solid #BBF7D0;
+    border-radius: var(--radio); padding: 12px 16px; font-size: 12px; color: #166534;
+  }
+  .audit-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 0; }
+  .audit-kpi  { border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 12px 10px; text-align: center; }
+  .audit-kpi .kpi-label { font-size: 10px; letter-spacing:1px; text-transform:uppercase; color:var(--gris-texto); font-weight:600; margin-bottom:5px; }
+  .audit-kpi .kpi-value { font-family:'DM Mono',monospace; font-size:16px; font-weight:500; color:var(--azul); }
+  .audit-kpi.desp   .kpi-value { color: var(--azul-claro); }
+  .audit-kpi.vend   .kpi-value { color: var(--verde); }
+  .audit-kpi.novend .kpi-value { color: #D97706; }
+
   /* ── PRINT ── */
   @media print {
     @page { size: A4; margin: 14mm 12mm; }
@@ -300,7 +327,7 @@
   <summary>🔧 Guía de integración — cómo generar la URL desde AppSheet</summary>
   <p class="tip">
     Pega esta URL en el campo de acción de AppSheet (<strong>Open a URL</strong>).<br>
-    Los arrays <code>productos</code> / <code>clientes</code> van como JSON codificado con <code>ENCODEURL()</code>.
+    Los arrays <code>productos</code> / <code>clientes</code> / <code>despachados</code> / <code>noVendidos</code> van como JSON codificado con <code>ENCODEURL()</code>.
   </p>
   <div class="url-box" id="url-ejemplo"></div>
   <button class="copy-btn" onclick="copiarURL()">Copiar URL</button>
@@ -310,7 +337,11 @@
     <code>totalClientes · totalVenta · totalEfectivo · totalLts · totalProductos</code><br>
     <code>totalTransferencia · totalDeposito · totalEgresos · balanceCierre</code><br>
     <code>productos</code> → JSON: <code>[{"producto":"...","presentacion":"...","precio":0,"canPres":0,"cantidad":0}]</code><br>
-    <code>clientes</code>  → JSON: <code>[{"cliente":"...","efectivo":0,"transferencia":0,"totalVenta":0}]</code>
+    <code>clientes</code>  → JSON: <code>[{"cliente":"...","efectivo":0,"transferencia":0,"totalVenta":0}]</code><br>
+    <strong>Auditoría de inventario:</strong><br>
+    <code>despachados</code> → JSON: <code>[{"producto":"...","cantidad":0}]</code> — de GCB_DESPACHO_DETALLES<br>
+    <code>noVendidos</code>  → JSON: <code>[{"producto":"...","cantidad":0}]</code> — de GCB_DESPACHO_NO VENDIDO<br>
+    <em>Los vendidos se calculan automáticamente desde el array <code>productos</code> ya existente.</em>
   </p>
 </details>
 
@@ -406,6 +437,52 @@
       </table>
     </div>
 
+    <!-- ══ SECCIÓN AUDITORÍA INVENTARIO ══ -->
+    <div id="seccion-auditoria" style="display:none">
+      <div class="section-title">Auditoría de Inventario</div>
+
+      <div class="audit-kpis" style="margin-bottom:14px">
+        <div class="audit-kpi desp">
+          <div class="kpi-label">Total Despachado</div>
+          <div class="kpi-value" id="aud-total-desp">—</div>
+        </div>
+        <div class="audit-kpi vend">
+          <div class="kpi-label">Total Vendido</div>
+          <div class="kpi-value" id="aud-total-vend">—</div>
+        </div>
+        <div class="audit-kpi novend">
+          <div class="kpi-label">Total No Vendido</div>
+          <div class="kpi-value" id="aud-total-nv">—</div>
+        </div>
+      </div>
+
+      <div id="aud-banner" style="margin-bottom:12px"></div>
+
+      <table class="auditoria-tabla">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Despachado</th>
+            <th>Vendido</th>
+            <th>No Vendido</th>
+            <th>Diferencia</th>
+            <th style="text-align:center">Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-auditoria"></tbody>
+        <tfoot>
+          <tr>
+            <td>Totales</td>
+            <td id="aud-f-desp">0</td>
+            <td id="aud-f-vend">0</td>
+            <td id="aud-f-nv">0</td>
+            <td id="aud-f-diff">0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
   </div>
 
   <div class="doc-footer">
@@ -451,6 +528,14 @@ function buildUrlEjemplo() {
     {"cliente":"Supermercado La Colonia","efectivo":1200,"transferencia":0,"totalVenta":1200},
     {"cliente":"Restaurant El Fogón","efectivo":0,"transferencia":780,"totalVenta":780}
   ]);
+  const despEj = JSON.stringify([
+    {"producto":"Botellón 20L","cantidad":10},
+    {"producto":"Bolsa 500ml","cantidad":24}
+  ]);
+  const nvEj = JSON.stringify([
+    {"producto":"Botellón 20L","cantidad":2},
+    {"producto":"Bolsa 500ml","cantidad":4}
+  ]);
   return base
     + "?idRuta=<<[IDRUTA]>>"
     + "&fecha=<<[Fecha]>>"
@@ -469,7 +554,9 @@ function buildUrlEjemplo() {
     + "&totalEgresos=<<[Total Egresos]>>"
     + "&balanceCierre=<<[Balance Cierrre]>>"
     + "&productos=" + encodeURIComponent(prodEj)
-    + "&clientes="  + encodeURIComponent(cliEj);
+    + "&clientes="  + encodeURIComponent(cliEj)
+    + "&despachados=" + encodeURIComponent(despEj)
+    + "&noVendidos="  + encodeURIComponent(nvEj);
 }
 function copiarURL() {
   navigator.clipboard.writeText(document.getElementById("url-ejemplo").textContent)
@@ -516,6 +603,20 @@ function render() {
       {"cliente":"Gasolinera Norte",           "efectivo":660, "transferencia":0,   "totalVenta":660},
       {"cliente":"Farmacia Central",           "efectivo":410, "transferencia":0,   "totalVenta":410},
       {"cliente":"Café & Bakery",              "efectivo":150, "transferencia":0,   "totalVenta":150}
+    ]))),
+    despachados: parseJSON(p("despachados", JSON.stringify([
+      {"producto":"Botellón 20L",  "cantidad":10},
+      {"producto":"Bolsa 500ml",   "cantidad":24},
+      {"producto":"Botella 600ml", "cantidad":12},
+      {"producto":"Garrafón 5L",   "cantidad":6},
+      {"producto":"Botella 1L",    "cantidad":8}
+    ]))),
+    noVendidos: parseJSON(p("noVendidos", JSON.stringify([
+      {"producto":"Botellón 20L",  "cantidad":2},
+      {"producto":"Bolsa 500ml",   "cantidad":4},
+      {"producto":"Botella 600ml", "cantidad":0},
+      {"producto":"Garrafón 5L",   "cantidad":1},
+      {"producto":"Botella 1L",    "cantidad":3}
     ])))
   };
 
@@ -579,6 +680,79 @@ function render() {
   document.getElementById("sum-transf").textContent   = L(sT);
   document.getElementById("sum-venta").textContent    = L(sV);
   document.getElementById("fecha-gen").textContent = fechaGen();
+
+  // ── AUDITORÍA DE INVENTARIO ──────────────────────────────────────────────
+  if (D.despachados && D.despachados.length > 0) {
+    document.getElementById("seccion-auditoria").style.display = "block";
+
+    // Construir mapa de vendidos desde D.productos (agrupados por presentacion = nombre producto)
+    const vendMap = {};
+    D.productos.forEach(r => {
+      const key = r.presentacion || r.producto;
+      vendMap[key] = (vendMap[key] || 0) + (Number(r.cantidad) || 0);
+    });
+
+    // Construir mapa de no vendidos
+    const nvMap = {};
+    (D.noVendidos || []).forEach(r => {
+      nvMap[r.producto] = (nvMap[r.producto] || 0) + (Number(r.cantidad) || 0);
+    });
+
+    // Unión de todos los productos por nombre
+    const allProds = [...new Set([
+      ...D.despachados.map(r => r.producto),
+      ...(D.noVendidos || []).map(r => r.producto)
+    ])];
+
+    // Mapa de despachados
+    const despMap = {};
+    D.despachados.forEach(r => { despMap[r.producto] = (despMap[r.producto] || 0) + (Number(r.cantidad) || 0); });
+
+    let totDesp=0, totVend=0, totNV=0, totDiff=0;
+    const tbA = document.getElementById("tabla-auditoria");
+    tbA.innerHTML = "";
+
+    allProds.forEach(prod => {
+      const desp = despMap[prod] || 0;
+      const nv   = nvMap[prod]   || 0;
+      const vend = vendMap[prod] || 0;
+      const diff = desp - vend - nv;
+      totDesp += desp; totVend += vend; totNV += nv; totDiff += diff;
+
+      const tr = document.createElement("tr");
+      if (diff !== 0) tr.classList.add("audit-row-bad");
+      tr.innerHTML = `
+        <td style="font-weight:500">${prod}</td>
+        <td>${desp}</td>
+        <td>${vend}</td>
+        <td>${nv}</td>
+        <td class="${diff === 0 ? 'diff-ok' : 'diff-bad'}">${diff > 0 ? '+'+diff : diff}</td>
+        <td style="text-align:center">
+          ${diff === 0
+            ? '<span class="audit-badge-ok">✓ OK</span>'
+            : '<span class="audit-badge-bad">⚠ DIFF</span>'}
+        </td>`;
+      tbA.appendChild(tr);
+    });
+
+    document.getElementById("aud-total-desp").textContent = totDesp;
+    document.getElementById("aud-total-vend").textContent = totVend;
+    document.getElementById("aud-total-nv").textContent   = totNV;
+    document.getElementById("aud-f-desp").textContent = totDesp;
+    document.getElementById("aud-f-vend").textContent = totVend;
+    document.getElementById("aud-f-nv").textContent   = totNV;
+    document.getElementById("aud-f-diff").textContent = totDiff > 0 ? "+"+totDiff : totDiff;
+
+    const banner = document.getElementById("aud-banner");
+    if (totDiff === 0) {
+      banner.innerHTML = '<div class="audit-ok-banner"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><strong>Todo cuadra.</strong> El total despachado coincide con vendido + no vendido en todos los productos.</span></div>';
+    } else {
+      const nDiff = allProds.filter(p => {
+        const d=despMap[p]||0, v=vendMap[p]||0, n=nvMap[p]||0; return (d-v-n)!==0;
+      }).length;
+      banner.innerHTML = `<div class="audit-alert"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>${nDiff} producto${nDiff>1?'s':''} con diferencia.</strong> Diferencia total: <strong>${totDiff > 0 ? '+'+totDiff : totDiff}</strong> unidades. Se requiere revisión.</span></div>`;
+    }
+  }
 
   document.getElementById("loading").style.opacity = "0";
   setTimeout(() => document.getElementById("loading").style.display = "none", 400);
