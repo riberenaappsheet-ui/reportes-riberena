@@ -521,20 +521,21 @@ function fechaGen() {
 function buildUrlEjemplo() {
   const base = window.location.href.split("?")[0];
   const prodEj = JSON.stringify([
-    {"producto":"Agua Purificada","presentacion":"Botellón 20L","precio":45,"canPres":80,"cantidad":80},
-    {"producto":"Agua Purificada","presentacion":"Bolsa 500ml","precio":5,"canPres":240,"cantidad":240}
+    {"producto":"Botellón 20L","presentacion":"UNIDAD","precio":45,"canPres":6,"cantidad":6},
+    {"producto":"Botellón 20L","presentacion":"UNIDAD","precio":50,"canPres":2,"cantidad":2},
+    {"producto":"Bolsa 500ml","presentacion":"FARDO 10 UND","precio":5,"canPres":20,"cantidad":200}
   ]);
   const cliEj = JSON.stringify([
-    {"cliente":"Supermercado La Colonia","efectivo":1200,"transferencia":0,"totalVenta":1200},
-    {"cliente":"Restaurant El Fogón","efectivo":0,"transferencia":780,"totalVenta":780}
+    {"cliente":"Supermercado La Colonia","tipoVenta":"Contado","efectivo":1200,"transferencia":0,"totalVenta":1200,"ubicacion":"","saldoCredito":0},
+    {"cliente":"Restaurant El Fogón","tipoVenta":"Contado","efectivo":0,"transferencia":780,"totalVenta":780,"ubicacion":"","saldoCredito":0}
   ]);
   const despEj = JSON.stringify([
-    {"producto":"Botellón 20L","cantidad":10},
-    {"producto":"Bolsa 500ml","cantidad":24}
+    {"producto":"Botellón 20L","cantidad":12},
+    {"producto":"Bolsa 500ml","cantidad":240}
   ]);
   const nvEj = JSON.stringify([
     {"producto":"Botellón 20L","cantidad":2},
-    {"producto":"Bolsa 500ml","cantidad":4}
+    {"producto":"Bolsa 500ml","cantidad":40}
   ]);
   return base
     + "?idRuta=<<[IDRUTA]>>"
@@ -685,10 +686,10 @@ function render() {
   if (D.despachados && D.despachados.length > 0) {
     document.getElementById("seccion-auditoria").style.display = "block";
 
-    // Construir mapa de vendidos desde D.productos (agrupados por presentacion = nombre producto)
+    // Construir mapa de vendidos desde D.productos (agrupados por producto, sumando todas las presentaciones y precios)
     const vendMap = {};
     D.productos.forEach(r => {
-      const key = r.presentacion || r.producto;
+      const key = r.producto;
       vendMap[key] = (vendMap[key] || 0) + (Number(r.cantidad) || 0);
     });
 
