@@ -730,13 +730,13 @@ function render() {
         <td>${desp}</td>
         <td>${vend}</td>
         <td>${nv}</td>
-        <td class="${diff === 0 ? 'diff-ok' : 'diff-bad'}">${diff === 0 ? '0' : diff < 0 ? diff : '+'+diff}</td>
+        <td class="${diff === 0 ? 'diff-ok' : 'diff-bad'}">${diff === 0 ? '0' : diff > 0 ? '-'+diff : '+'+Math.abs(diff)}</td>
         <td style="text-align:center">
           ${diff === 0
             ? '<span class="audit-badge-ok">✓ OK</span>'
-            : diff < 0
+            : diff > 0
               ? '<span class="audit-badge-bad">⚠ FALTA</span>'
-              : '<span class="audit-badge-bad">⚠ SOBRA</span>'}
+              : '<span class="audit-badge-bad">⚠ ERROR</span>'}
         </td>`;
       tbA.appendChild(tr);
     });
@@ -747,7 +747,7 @@ function render() {
     document.getElementById("aud-f-desp").textContent = totDesp;
     document.getElementById("aud-f-vend").textContent = totVend;
     document.getElementById("aud-f-nv").textContent   = totNV;
-    document.getElementById("aud-f-diff").textContent = totDiff === 0 ? '0' : totDiff < 0 ? totDiff : '+'+totDiff;
+    document.getElementById("aud-f-diff").textContent = totDiff === 0 ? '0' : totDiff > 0 ? '-'+totDiff : '+'+Math.abs(totDiff);
 
     const banner = document.getElementById("aud-banner");
     if (totDiff === 0) {
@@ -756,9 +756,11 @@ function render() {
       const nDiff = allProds.filter(p => {
         const d=despMap[p]||0, v=vendMap[p]||0, n=nvMap[p]||0; return (d-v-n)!==0;
       }).length;
-      const signo = totDiff < 0 ? 'Faltan' : 'Sobran';
-      const abs   = Math.abs(totDiff);
-      banner.innerHTML = `<div class="audit-alert"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>${nDiff} producto${nDiff>1?'s':''} con diferencia.</strong> ${signo} <strong>${abs}</strong> unidad${abs>1?'es':''} en total. Se requiere revisión.</span></div>`;
+      const abs = Math.abs(totDiff);
+      const msg = totDiff > 0
+        ? `Faltan rendir <strong>${abs}</strong> unidad${abs>1?'es':''} (no vendidas ni reportadas como no vendidas).`
+        : `Exceso de <strong>${abs}</strong> unidad${abs>1?'es':''} reportadas sobre lo despachado. Revisar datos.`;
+      banner.innerHTML = `<div class="audit-alert"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span><strong>${nDiff} producto${nDiff>1?'s':''} con diferencia.</strong> ${msg}</span></div>`;
     }
   }
 
