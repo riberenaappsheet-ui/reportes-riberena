@@ -790,6 +790,24 @@ function render() {
 
 function compartirWhatsApp() {
   const get = id => document.getElementById(id).textContent;
+
+  // Auditoría — solo incluir si la sección está activa (despachados presentes)
+  const audSection = document.getElementById("aud-banner");
+  let audMsg = "";
+  if (audSection && get("aud-f-desp") !== "0" && get("aud-f-desp") !== "—") {
+    const diff     = get("aud-f-diff");
+    const diffLine = diff === "0"
+      ? `Diferencia:         ✓ Todo cuadra`
+      : `Diferencia:         ⚠ ${diff} unidades`;
+    audMsg =
+      `─────────────────────\n` +
+      `*Auditoría de Inventario*\n` +
+      `Despachado:         ${get("aud-f-desp")} und\n` +
+      `Vendido:            ${get("aud-f-vend")} und\n` +
+      `No Vendido:         ${get("aud-f-nv")} und\n` +
+      `${diffLine}\n`;
+  }
+
   const msg =
     `*Reporte de Ventas — ${get("id-ruta")}*\n` +
     `Fecha: ${get("d-fecha")} | ${get("d-responsable")}\n` +
@@ -801,6 +819,7 @@ function compartirWhatsApp() {
     `Depósito:           ${get("k-dep")}\n` +
     `Egresos:            ${get("k-egr")}\n` +
     `Balance Cierre:     ${get("k-balance")}\n` +
+    audMsg +
     `─────────────────────\n` +
     `Sistema Ribereña Distribución`;
   window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
