@@ -513,6 +513,13 @@ function p(name, fallback = "") {
 function parseJSON(str) {
   try { return JSON.parse(str); } catch { return []; }
 }
+function normalizeKeys(arr, map) {
+  return (arr || []).map(obj => {
+    const out = {};
+    Object.keys(obj).forEach(k => { out[map[k] !== undefined ? map[k] : k] = obj[k]; });
+    return out;
+  });
+}
 function fechaGen() {
   const n = new Date();
   return n.toLocaleDateString("es-HN", {day:"2-digit",month:"2-digit",year:"numeric"})
@@ -521,24 +528,24 @@ function fechaGen() {
 function buildUrlEjemplo() {
   const base = window.location.href.split("?")[0];
   const prodEj = JSON.stringify([
-    {"producto":"Botellón 20L","presentacion":"UNIDAD","precio":45,"canPres":6,"cantidad":6},
-    {"producto":"Botellón 20L","presentacion":"UNIDAD","precio":50,"canPres":2,"cantidad":2},
-    {"producto":"Bolsa 500ml","presentacion":"FARDO 10 UND","precio":5,"canPres":20,"cantidad":200},
-    {"producto":"Botella 600ml","presentacion":"PACK 24 UND","precio":8,"canPres":5,"cantidad":120}
+    {"p":"Botellón 20L","pr":"UNIDAD","pc":45,"cp":6,"c":6},
+    {"p":"Botellón 20L","pr":"UNIDAD","pc":50,"cp":2,"c":2},
+    {"p":"Bolsa 500ml","pr":"FARDO 10 UND","pc":5,"cp":20,"c":200},
+    {"p":"Botella 600ml","pr":"PACK 24 UND","pc":8,"cp":5,"c":120}
   ]);
   const cliEj = JSON.stringify([
-    {"cliente":"Supermercado La Colonia","tipoVenta":"Contado","efectivo":1200,"transferencia":0,"totalVenta":1200,"ubicacion":"","saldoCredito":0},
-    {"cliente":"Restaurant El Fogón","tipoVenta":"Contado","efectivo":0,"transferencia":780,"totalVenta":780,"ubicacion":"","saldoCredito":0}
+    {"n":"Supermercado La Colonia","tv":"Contado","e":1200,"t":0,"v":1200,"u":"","s":0},
+    {"n":"Restaurant El Fogón","tv":"Contado","e":0,"t":780,"v":780,"u":"","s":0}
   ]);
   const despEj = JSON.stringify([
-    {"producto":"Botellón 20L","cantidad":12},
-    {"producto":"Bolsa 500ml","cantidad":240},
-    {"producto":"Botella 600ml","cantidad":120}
+    {"p":"Botellón 20L","c":12},
+    {"p":"Bolsa 500ml","c":240},
+    {"p":"Botella 600ml","c":120}
   ]);
   const nvEj = JSON.stringify([
-    {"producto":"Botellón 20L","cantidad":2},
-    {"producto":"Bolsa 500ml","cantidad":40},
-    {"producto":"Botella 600ml","cantidad":0}
+    {"p":"Botellón 20L","c":2},
+    {"p":"Bolsa 500ml","c":40},
+    {"p":"Botella 600ml","c":0}
   ]);
   return base
     + "?idRuta=<<[IDRUTA]>>"
@@ -589,40 +596,45 @@ function render() {
     totalEgresos:       p("totalEgresos",       "350"),
     balanceCierre:      p("balanceCierre",      "12100"),
     productos: parseJSON(p("productos", JSON.stringify([
-      {"producto":"Botellón 20L",  "presentacion":"UNIDAD",        "precio":45, "canPres":6,  "cantidad":6},
-      {"producto":"Botellón 20L",  "presentacion":"UNIDAD",        "precio":50, "canPres":2,  "cantidad":2},
-      {"producto":"Bolsa 500ml",   "presentacion":"FARDO 10 UND",  "precio":5,  "canPres":20, "cantidad":200},
-      {"producto":"Botella 600ml", "presentacion":"PACK 24 UND",   "precio":8,  "canPres":5,  "cantidad":120},
-      {"producto":"Garrafón 5L",   "presentacion":"UNIDAD",        "precio":18, "canPres":5,  "cantidad":5},
-      {"producto":"Botella 1L",    "presentacion":"PACK 12 UND",   "precio":12, "canPres":4,  "cantidad":48}
+      {"p":"Botellón 20L",  "pr":"UNIDAD",        "pc":45, "cp":6,  "c":6},
+      {"p":"Botellón 20L",  "pr":"UNIDAD",        "pc":50, "cp":2,  "c":2},
+      {"p":"Bolsa 500ml",   "pr":"FARDO 10 UND",  "pc":5,  "cp":20, "c":200},
+      {"p":"Botella 600ml", "pr":"PACK 24 UND",   "pc":8,  "cp":5,  "c":120},
+      {"p":"Garrafón 5L",   "pr":"UNIDAD",        "pc":18, "cp":5,  "c":5},
+      {"p":"Botella 1L",    "pr":"PACK 12 UND",   "pc":12, "cp":4,  "c":48}
     ]))),
     clientes: parseJSON(p("clientes", JSON.stringify([
-      {"cliente":"Supermercado La Colonia",    "efectivo":1200,"transferencia":0,   "totalVenta":1200},
-      {"cliente":"Pulpería San José",          "efectivo":450, "transferencia":0,   "totalVenta":450},
-      {"cliente":"Restaurant El Fogón",        "efectivo":0,   "transferencia":780, "totalVenta":780},
-      {"cliente":"Hotel Plaza Central",        "efectivo":0,   "transferencia":1850,"totalVenta":1850},
-      {"cliente":"Tienda Don Ramón",           "efectivo":540, "transferencia":0,   "totalVenta":540},
-      {"cliente":"Clínica San Rafael",         "efectivo":0,   "transferencia":920, "totalVenta":920},
-      {"cliente":"Distribuidora El Éxito",     "efectivo":1800,"transferencia":0,   "totalVenta":1800},
-      {"cliente":"Gasolinera Norte",           "efectivo":660, "transferencia":0,   "totalVenta":660},
-      {"cliente":"Farmacia Central",           "efectivo":410, "transferencia":0,   "totalVenta":410},
-      {"cliente":"Café & Bakery",              "efectivo":150, "transferencia":0,   "totalVenta":150}
+      {"n":"Supermercado La Colonia",    "e":1200,"t":0,   "v":1200},
+      {"n":"Pulpería San José",          "e":450, "t":0,   "v":450},
+      {"n":"Restaurant El Fogón",        "e":0,   "t":780, "v":780},
+      {"n":"Hotel Plaza Central",        "e":0,   "t":1850,"v":1850},
+      {"n":"Tienda Don Ramón",           "e":540, "t":0,   "v":540},
+      {"n":"Clínica San Rafael",         "e":0,   "t":920, "v":920},
+      {"n":"Distribuidora El Éxito",     "e":1800,"t":0,   "v":1800},
+      {"n":"Gasolinera Norte",           "e":660, "t":0,   "v":660},
+      {"n":"Farmacia Central",           "e":410, "t":0,   "v":410},
+      {"n":"Café & Bakery",              "e":150, "t":0,   "v":150}
     ]))),
     despachados: parseJSON(p("despachados", JSON.stringify([
-      {"producto":"Botellón 20L",  "cantidad":12},
-      {"producto":"Bolsa 500ml",   "cantidad":240},
-      {"producto":"Botella 600ml", "cantidad":120},
-      {"producto":"Garrafón 5L",   "cantidad":8},
-      {"producto":"Botella 1L",    "cantidad":48}
+      {"p":"Botellón 20L",  "c":12},
+      {"p":"Bolsa 500ml",   "c":240},
+      {"p":"Botella 600ml", "c":120},
+      {"p":"Garrafón 5L",   "c":8},
+      {"p":"Botella 1L",    "c":48}
     ]))),
     noVendidos: parseJSON(p("noVendidos", JSON.stringify([
-      {"producto":"Botellón 20L",  "cantidad":2},
-      {"producto":"Bolsa 500ml",   "cantidad":40},
-      {"producto":"Botella 600ml", "cantidad":0},
-      {"producto":"Garrafón 5L",   "cantidad":3},
-      {"producto":"Botella 1L",    "cantidad":0}
+      {"p":"Botellón 20L",  "c":2},
+      {"p":"Bolsa 500ml",   "c":40},
+      {"p":"Botella 600ml", "c":0},
+      {"p":"Garrafón 5L",   "c":3},
+      {"p":"Botella 1L",    "c":0}
     ])))
   };
+
+  D.clientes    = normalizeKeys(D.clientes,    {n:'cliente',tv:'tipoVenta',e:'efectivo',t:'transferencia',v:'totalVenta',u:'ubicacion',s:'saldoCredito'});
+  D.productos   = normalizeKeys(D.productos,   {p:'producto',pr:'presentacion',pc:'precio',cp:'canPres',c:'cantidad'});
+  D.despachados = normalizeKeys(D.despachados, {p:'producto',c:'cantidad'});
+  D.noVendidos  = normalizeKeys(D.noVendidos,  {p:'producto',c:'cantidad'});
 
   document.getElementById("id-ruta").textContent       = D.idRuta;
   document.getElementById("d-fecha").textContent       = D.fecha;
