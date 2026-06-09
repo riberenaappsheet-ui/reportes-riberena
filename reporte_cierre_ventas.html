@@ -656,7 +656,7 @@ function render() {
   const tbP = document.getElementById("tabla-productos");
   let totU = 0;
   D.productos.forEach(row => {
-    totU += Number(row.cantidad) || 0;
+    totU += cleanNum(row.cantidad);
     tbP.innerHTML += `<tr>
       <td>${row.producto}</td>
       <td style="text-align:left">${row.presentacion}</td>
@@ -705,13 +705,13 @@ function render() {
     const vendMap = {};
     D.productos.forEach(r => {
       const key = r.producto;
-      vendMap[key] = (vendMap[key] || 0) + (Number(r.cantidad) || 0);
+      vendMap[key] = (vendMap[key] || 0) + cleanNum(r.cantidad);
     });
 
     // Construir mapa de no vendidos
     const nvMap = {};
     (D.noVendidos || []).forEach(r => {
-      nvMap[r.producto] = (nvMap[r.producto] || 0) + (Number(r.cantidad) || 0);
+      nvMap[r.producto] = (nvMap[r.producto] || 0) + cleanNum(r.cantidad);
     });
 
     // Unión de todos los productos por nombre
@@ -722,7 +722,7 @@ function render() {
 
     // Mapa de despachados
     const despMap = {};
-    D.despachados.forEach(r => { despMap[r.producto] = (despMap[r.producto] || 0) + (Number(r.cantidad) || 0); });
+    D.despachados.forEach(r => { despMap[r.producto] = (despMap[r.producto] || 0) + cleanNum(r.cantidad); });
 
     let totDesp=0, totVend=0, totNV=0, totDiff=0;
     const tbA = document.getElementById("tabla-auditoria");
