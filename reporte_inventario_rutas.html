@@ -94,6 +94,8 @@
   .ley-dot { width: 10px; height: 10px; border-radius: 2px; }
   .ley-dot.verde { background: var(--verde); }
   .ley-dot.rojo { background: var(--rojo); }
+  .btn-appsheet { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; border:1px solid var(--borde); background:var(--blanco); color:var(--gris); text-decoration:none; white-space:nowrap; transition:background 0.15s,color 0.15s; }
+  .btn-appsheet:hover { background:var(--gris-claro); color:var(--texto); }
 
   @media (max-width: 600px) {
     .header, .filtros, .main, .resumen { padding-left: 14px; padding-right: 14px; }
@@ -327,6 +329,7 @@ function renderReporte(rutas,desde,hasta) {
   rutas.forEach((r,i)=>{
     const cls=r.tieneFalta?'falta':'ok';
     const badgeTxt=r.tieneFalta?`⚠ ${fmt(Math.abs(r.totalDif))} unid. sin rendir`:'✓ Cuadra';
+    const appsheetUrl=`https://www.appsheet.com/start/8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc?platform=desktop#appName=Ribe%C3%B1aApp-753059166&row=${encodeURIComponent(r.ruta)}&view=MER_RUTA_Detail`;
     html+=`
       <div class="ruta-card ${cls}" id="rc-${i}">
         <div class="ruta-header" onclick="tog(${i})">
@@ -341,6 +344,10 @@ function renderReporte(rutas,desde,hasta) {
           </div>
           <div class="ruta-badges">
             <span class="badge ${cls}">${badgeTxt}</span>
+            <a href="${appsheetUrl}" target="_blank" onclick="event.stopPropagation()" class="btn-appsheet" title="Ver en AppSheet">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              AppSheet
+            </a>
             <span class="chevron">▾</span>
           </div>
         </div>
