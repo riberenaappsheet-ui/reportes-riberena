@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Regalías por Ruta</title>
+<style>
+  :root {
+    --verde: #1D9E75; --verde-bg: #E1F5EE; --verde-text: #085041;
+    --amber: #BA7517; --amber-bg: #FAEEDA; --amber-text: #412402;
+    --azul: #378ADD; --azul-bg: #E6F1FB; --azul-text: #042C53;
+    --gris: #5F5E5A; --gris-claro: #F1EFE8; --borde: #D3D1C7;
+    --texto: #2C2C2A; --texto-sec: #888780; --blanco: #ffffff;
+    --rojo: #E24B4A; --rojo-bg: #FCEBEB; --rojo-text: #501313;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F7F4; color: var(--texto); font-size: 14px; min-height: 100vh; }
+
+  .header { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); display: inline-block; }
+  .h-title { font-size: 16px; font-weight: 600; }
+  .h-sub { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
+  .nav-link { font-size: 12px; font-weight: 500; color: var(--verde-text); text-decoration: none; border: 1px solid var(--verde-bg); background: var(--verde-bg); padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+  .nav-link:hover { background: #9FE1CB; }
+
+  .filtros { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .filtros label { font-size: 12px; color: var(--texto-sec); font-weight: 500; }
+  .filtros input[type="date"] { border: 1px solid var(--borde); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--texto); background: var(--blanco); outline: none; }
+  .filtros input[type="date"]:focus { border-color: var(--amber); }
+  .btn { background: var(--amber); color: white; border: none; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .btn:hover { background: #854F0B; }
+  .btn:disabled { background: var(--borde); cursor: not-allowed; }
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 20px 24px 0; }
+  .card-stat { background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 14px 16px; text-align: center; }
+  .card-stat .num { font-size: 26px; font-weight: 700; margin-bottom: 3px; }
+  .card-stat .lbl { font-size: 11px; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-stat.amber .num { color: var(--amber); }
+  .card-stat.gris .num { color: var(--gris); }
+
+  .main { padding: 20px 24px; }
+
+  /* TARJETAS DE RUTA */
+  .rutas-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .ruta-card { background: var(--blanco); border: 1px solid var(--borde); border-left: 4px solid var(--amber); border-radius: 10px; overflow: hidden; }
+  .ruta-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; flex-wrap: wrap; }
+  .ruta-header:hover { background: var(--gris-claro); }
+  .ruta-nombre { font-weight: 600; font-size: 14px; }
+  .ruta-responsable { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
+  .ruta-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .badge-amber { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--amber-bg); color: var(--amber-text); white-space: nowrap; }
+  .chevron { font-size: 14px; color: var(--texto-sec); transition: transform 0.2s; }
+  .ruta-card.open .chevron { transform: rotate(180deg); }
+
+  .ruta-detalle { display: none; border-top: 1px solid var(--borde); }
+  .ruta-card.open .ruta-detalle { display: block; }
+
+  /* TABLA DE CLIENTES */
+  .cliente-section { border-bottom: 1px solid var(--gris-claro); }
+  .cliente-section:last-child { border-bottom: none; }
+  .cliente-header { padding: 10px 16px; background: #FAFAF8; display: flex; align-items: center; gap: 10px; }
+  .cliente-nombre { font-size: 13px; font-weight: 600; color: var(--texto); }
+  .cliente-ubicacion { font-size: 11px; color: var(--texto-sec); }
+  .badge-cant { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--amber-bg); color: var(--amber-text); }
+
+  .prod-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .prod-table th { background: var(--gris-claro); padding: 7px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.4px; }
+  .prod-table th.r, .prod-table td.r { text-align: right; }
+  .prod-table td { padding: 8px 16px; border-top: 1px solid var(--gris-claro); }
+  .prod-table tr:hover td { background: #fafaf8; }
+  .tag-reg { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--amber-bg); color: var(--amber-text); margin-left: 6px; }
+
+  .btn-appsheet { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; border:1px solid var(--borde); background:var(--blanco); color:var(--gris); text-decoration:none; white-space:nowrap; transition:background 0.15s; }
+  .btn-appsheet:hover { background:var(--gris-claro); color:var(--texto); }
+
+  .estado { text-align: center; padding: 60px 24px; color: var(--texto-sec); }
+  .estado .ico { font-size: 40px; margin-bottom: 12px; }
+  .estado h3 { font-size: 15px; font-weight: 600; color: var(--texto); margin-bottom: 6px; }
+  .estado p { font-size: 13px; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+  .error-box { background: var(--rojo-bg); border: 1px solid #F7C1C1; border-radius: 8px; padding: 12px 16px; color: var(--rojo-text); font-size: 13px; margin: 16px 24px; line-height: 1.5; }
+  .sec-titulo { font-size: 13px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+  @media (max-width: 600px) {
+    .header, .filtros, .main, .resumen { padding-left: 14px; padding-right: 14px; }
+    .resumen { grid-template-columns: repeat(2, 1fr); }
+    .prod-table { font-size: 12px; }
+    .prod-table th, .prod-table td { padding: 7px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="logo-dot"></span>
+    <div>
+      <div class="h-title">Reporte de Regalías por Ruta</div>
+      <div class="h-sub">Productos entregados como regalía por cliente y ruta</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <a href="reporte_inventario_rutas.html" class="nav-link">📦 Ver Inventario →</a>
+    <div id="ultima-act" style="font-size:11px;color:var(--texto-sec);"></div>
+  </div>
+</div>
+
+<div class="filtros">
+  <label>Desde</label>
+  <input type="date" id="fecha-inicio">
+  <span style="color:var(--borde);">—</span>
+  <label>Hasta</label>
+  <input type="date" id="fecha-fin">
+  <button class="btn" id="btn-cargar" onclick="cargarDatos()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btn-texto">Cargar datos</span>
+  </button>
+</div>
+
+<div id="error-container"></div>
+
+<div class="resumen" id="resumen" style="display:none;">
+  <div class="card-stat gris"><div class="num" id="s-rutas">—</div><div class="lbl">Rutas con regalías</div></div>
+  <div class="card-stat gris"><div class="num" id="s-clientes">—</div><div class="lbl">Clientes</div></div>
+  <div class="card-stat amber"><div class="num" id="s-total-reg">—</div><div class="lbl">Total unidades</div></div>
+  <div class="card-stat gris"><div class="num" id="s-productos">—</div><div class="lbl">Productos distintos</div></div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="estado">
+    <div class="ico">🎁</div>
+    <h3>Selecciona un rango de fechas</h3>
+    <p>Elige las fechas y presiona <strong>Cargar datos</strong> para ver las regalías entregadas por ruta y cliente.</p>
+  </div>
+</div>
+
+<script>
+const SHEET_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=392195505&single=true&output=csv';
+
+function parseCSVLine(line) {
+  const r=[]; let c='', inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){inQ=!inQ;}
+    else if(ch===','&&!inQ){r.push(c);c='';}
+    else{c+=ch;}
+  }
+  r.push(c); return r;
+}
+function parseCSV(text) {
+  const lines=text.trim().split('\n');
+  if(lines.length<2) return [];
+  const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line=>{
+    const vals=parseCSVLine(line);
+    const obj={};
+    headers.forEach((h,i)=>{ obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,''); });
+    return obj;
+  }).filter(r=>Object.values(r).some(v=>v!==''));
+}
+function normFecha(f) {
+  if(!f) return '';
+  f=f.trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(f)) return f.substring(0,10);
+  const p=f.split(/[\/\-]/);
+  if(p.length===3){
+    if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+    if(parseInt(p[0])>12) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    return `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
+  }
+  return f;
+}
+function enRango(f,d,h){ const n=normFecha(f); return n>=d&&n<=h; }
+function hoy(){ return new Date().toISOString().split('T')[0]; }
+function fmt(n){ return Math.round(n).toLocaleString('es'); }
+function fmtF(f){ if(!f)return''; const[y,m,d]=f.split('-'); return`${d}/${m}/${y}`; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function cargarDatos() {
+  const desde=document.getElementById('fecha-inicio').value;
+  const hasta=document.getElementById('fecha-fin').value;
+  if(!desde||!hasta){mostrarError('Selecciona un rango de fechas.');return;}
+  if(desde>hasta){mostrarError('La fecha inicio debe ser anterior a la fecha final.');return;}
+  setLoading(true); limpiarError();
+
+  try {
+    const resp=await fetch(SHEET_OT);
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const rows=parseCSV(await resp.text());
+
+    // Filtrar solo registros con Regalia > 0 en el rango
+    const regalia=rows.filter(r=>
+      r['ELIMINADO']!=='Y' &&
+      enRango(r['Fecha'],desde,hasta) &&
+      parseFloat(r['Regalia']||'0')>0
+    );
+
+    if(regalia.length===0){
+      mostrarVacio('Sin regalías en el período','No se encontraron regalías entregadas entre las fechas seleccionadas.');
+      setLoading(false); return;
+    }
+
+    // Agrupar por Ruta → Cliente → Producto
+    const porRuta={};
+    regalia.forEach(r=>{
+      const ruta=r['Ruta']||'Sin ruta';
+      const cliente=r['Cliente']||'Sin cliente';
+      const producto=r['Producto']||'Sin producto';
+      const ubicacion=r['Des. Cliente']||r['Ubicacion']||'';
+      const cant=parseFloat(r['Regalia'])||0;
+
+      if(!porRuta[ruta]) porRuta[ruta]={ruta, clientes:{}, totalReg:0};
+      if(!porRuta[ruta].clientes[cliente]) porRuta[ruta].clientes[cliente]={cliente, ubicacion, productos:{}, totalReg:0};
+
+      const pc=porRuta[ruta].clientes[cliente];
+      if(!pc.productos[producto]) pc.productos[producto]={producto, cant:0};
+      pc.productos[producto].cant+=cant;
+      pc.totalReg+=cant;
+      porRuta[ruta].totalReg+=cant;
+    });
+
+    const rutas=Object.values(porRuta).sort((a,b)=>b.totalReg-a.totalReg);
+    const totalClientes=new Set(regalia.map(r=>r['Cliente'])).size;
+    const totalReg=rutas.reduce((s,r)=>s+r.totalReg,0);
+    const totalProds=new Set(regalia.map(r=>r['Producto'])).size;
+
+    document.getElementById('s-rutas').textContent=rutas.length;
+    document.getElementById('s-clientes').textContent=totalClientes;
+    document.getElementById('s-total-reg').textContent=fmt(totalReg);
+    document.getElementById('s-productos').textContent=totalProds;
+    document.getElementById('resumen').style.display='';
+    document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
+
+    const fechaStr=desde===hasta?fmtF(desde):`${fmtF(desde)} – ${fmtF(hasta)}`;
+    let html=`<div class="sec-titulo">${rutas.length} rutas con regalías &middot; ${fechaStr}</div><div class="rutas-grid">`;
+
+    rutas.forEach((r,i)=>{
+      const clientesArr=Object.values(r.clientes).sort((a,b)=>b.totalReg-a.totalReg);
+      const appsheetUrl=`https://www.appsheet.com/start/8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc?platform=desktop#appName=Ribere%C3%B1aApp-753059166&row=${encodeURIComponent(r.ruta)}&view=MER_RUTA_Detail`;
+
+      let clientesHtml='';
+      clientesArr.forEach(cl=>{
+        const prodsArr=Object.values(cl.productos).sort((a,b)=>b.cant-a.cant);
+        clientesHtml+=`
+          <div class="cliente-section">
+            <div class="cliente-header">
+              <div>
+                <span class="cliente-nombre">${esc(cl.cliente)}</span>
+                ${cl.ubicacion?`<span class="cliente-ubicacion"> · ${esc(cl.ubicacion)}</span>`:''}
+              </div>
+              <span class="badge-cant">🎁 ${fmt(cl.totalReg)} unid.</span>
+            </div>
+            <table class="prod-table">
+              <thead><tr>
+                <th>Producto</th>
+                <th class="r">Cant. regalía</th>
+              </tr></thead>
+              <tbody>
+                ${prodsArr.map(p=>`
+                  <tr>
+                    <td>${esc(p.producto)}<span class="tag-reg">Regalía</span></td>
+                    <td class="r" style="font-weight:600;color:var(--amber);">${fmt(p.cant)}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      });
+
+      html+=`
+        <div class="ruta-card" id="rc-${i}">
+          <div class="ruta-header" onclick="tog(${i})">
+            <div>
+              <div class="ruta-nombre">Ruta ${esc(r.ruta)}</div>
+              <div class="ruta-responsable">${clientesArr.length} cliente${clientesArr.length!==1?'s':''} con regalías</div>
+            </div>
+            <div class="ruta-badges">
+              <span class="badge-amber">🎁 ${fmt(r.totalReg)} unidades</span>
+              <a href="${appsheetUrl}" target="_blank" onclick="event.stopPropagation()" class="btn-appsheet" title="Ver en AppSheet">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                AppSheet
+              </a>
+              <span class="chevron">▾</span>
+            </div>
+          </div>
+          <div class="ruta-detalle">${clientesHtml}</div>
+        </div>`;
+    });
+
+    html+='</div>';
+    document.getElementById('main-content').innerHTML=html;
+
+  } catch(e) {
+    mostrarError('No se pudieron cargar los datos. Verifica que la hoja esté publicada como CSV público.<br><small style="opacity:0.7">'+e.message+'</small>');
+  }
+  setLoading(false);
+}
+
+function tog(i){ document.getElementById('rc-'+i).classList.toggle('open'); }
+function setLoading(v){
+  document.getElementById('spinner').style.display=v?'block':'none';
+  document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';
+  document.getElementById('btn-cargar').disabled=v;
+}
+function mostrarError(msg){
+  document.getElementById('error-container').innerHTML=`<div class="error-box">⚠ ${msg}</div>`;
+  document.getElementById('main-content').innerHTML='';
+  document.getElementById('resumen').style.display='none';
+}
+function limpiarError(){ document.getElementById('error-container').innerHTML=''; }
+function mostrarVacio(t,d){
+  document.getElementById('main-content').innerHTML=`<div class="estado"><div class="ico">🎁</div><h3>${t}</h3><p>${d}</p></div>`;
+  document.getElementById('resumen').style.display='none';
+}
+
+document.getElementById('fecha-inicio').value=hoy();
+document.getElementById('fecha-fin').value=hoy();
+</script>
+</body>
+</html>
