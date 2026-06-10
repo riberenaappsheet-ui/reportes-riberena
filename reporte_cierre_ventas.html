@@ -256,22 +256,7 @@
   .modal-saldo.sin-dato { background: var(--gris-bg); border-color: var(--gris-borde); }
   .modal-saldo.sin-dato .modal-saldo-label,
   .modal-saldo.sin-dato .modal-saldo-val { color: var(--gris-texto); }
-  .modal-map-wrap {
-    border-radius: var(--radio); overflow: hidden;
-    border: 1px solid var(--gris-borde); position: relative;
-  }
-  .modal-map-wrap iframe { width: 100%; height: 210px; border: none; display: block; }
-  .modal-map-label {
-    position: absolute; bottom: 8px; left: 8px;
-    background: rgba(10,35,66,.75); color: #fff;
-    font-size: 10px; padding: 3px 8px; border-radius: 4px;
-    pointer-events: none;
-  }
-  .modal-no-ubicacion {
-    background: var(--gris-bg); border: 1px dashed var(--gris-borde);
-    border-radius: var(--radio); padding: 24px;
-    text-align: center; color: var(--gris-texto); font-size: 12px;
-  }
+
 
   /* ── SECCIÓN AUDITORÍA ── */
   .auditoria-tabla thead tr { background: #164474; }
@@ -338,7 +323,7 @@
     <code>totalClientes · totalVenta · totalEfectivo · totalLts · totalProductos</code><br>
     <code>totalTransferencia · totalCredito · totalDeposito · totalEgresos · balanceCierre</code><br>
     <code>productos</code> → JSON: <code>[{"producto":"...","presentacion":"...","precio":0,"canPres":0,"cantidad":0}]</code><br>
-    <code>clientes</code>  → JSON: <code>[{"cliente":"...","efectivo":0,"transferencia":0,"totalVenta":0}]</code><br>
+    <code>clientes</code>  → JSON: <code>[{"n":"...","tv":"...","e":0,"t":0,"v":0,"s":0}]</code><br>
     <strong>Auditoría de inventario:</strong><br>
     <code>despachados</code> → JSON: <code>[{"producto":"...","cantidad":0}]</code> — de GCB_DESPACHO_DETALLES<br>
     <code>noVendidos</code>  → JSON: <code>[{"producto":"...","cantidad":0}]</code> — de GCB_DESPACHO_NO VENDIDO<br>
@@ -536,8 +521,8 @@ function buildUrlEjemplo() {
     {"p":"Botella 600ml","pr":"PACK 24 UND","pc":8,"cp":5,"c":120}
   ]);
   const cliEj = JSON.stringify([
-    {"n":"Supermercado La Colonia","tv":"Contado","e":1200,"t":0,"v":1200,"u":"","s":0},
-    {"n":"Restaurant El Fogón","tv":"Contado","e":0,"t":780,"v":780,"u":"","s":0}
+    {"n":"Supermercado La Colonia","tv":"Contado","e":1200,"t":0,"v":1200,"s":0},
+    {"n":"Restaurant El Fogón","tv":"Contado","e":0,"t":780,"v":780,"s":0}
   ]);
   const despEj = JSON.stringify([
     {"p":"Botellón 20L","c":12},
@@ -608,16 +593,16 @@ function render() {
       {"p":"Botella 1L",    "pr":"PACK 12 UND",   "pc":12, "cp":4,  "c":48}
     ]))),
     clientes: parseJSON(p("clientes", JSON.stringify([
-      {"n":"Supermercado La Colonia",    "e":1200,"t":0,   "v":1200},
-      {"n":"Pulpería San José",          "e":450, "t":0,   "v":450},
-      {"n":"Restaurant El Fogón",        "e":0,   "t":780, "v":780},
-      {"n":"Hotel Plaza Central",        "e":0,   "t":1850,"v":1850},
-      {"n":"Tienda Don Ramón",           "e":540, "t":0,   "v":540},
-      {"n":"Clínica San Rafael",         "e":0,   "t":920, "v":920},
-      {"n":"Distribuidora El Éxito",     "e":1800,"t":0,   "v":1800},
-      {"n":"Gasolinera Norte",           "e":660, "t":0,   "v":660},
-      {"n":"Farmacia Central",           "e":410, "t":0,   "v":410},
-      {"n":"Café & Bakery",              "e":150, "t":0,   "v":150}
+      {"n":"Supermercado La Colonia",    "tv":"Contado","e":1200,"t":0,   "v":1200,"s":0},
+      {"n":"Pulpería San José",          "tv":"Contado","e":450, "t":0,   "v":450, "s":0},
+      {"n":"Restaurant El Fogón",        "tv":"Contado","e":0,   "t":780, "v":780, "s":0},
+      {"n":"Hotel Plaza Central",        "tv":"Credito","e":0,   "t":0,   "v":1850,"s":1850},
+      {"n":"Tienda Don Ramón",           "tv":"Contado","e":540, "t":0,   "v":540, "s":0},
+      {"n":"Clínica San Rafael",         "tv":"Contado","e":0,   "t":920, "v":920, "s":0},
+      {"n":"Distribuidora El Éxito",     "tv":"Contado","e":1800,"t":0,   "v":1800,"s":0},
+      {"n":"Gasolinera Norte",           "tv":"Contado","e":660, "t":0,   "v":660, "s":0},
+      {"n":"Farmacia Central",           "tv":"Contado","e":410, "t":0,   "v":410, "s":0},
+      {"n":"Café & Bakery",              "tv":"Contado","e":150, "t":0,   "v":150, "s":0}
     ]))),
     despachados: parseJSON(p("despachados", JSON.stringify([
       {"p":"Botellón 20L",  "c":12},
@@ -635,7 +620,7 @@ function render() {
     ])))
   };
 
-  D.clientes    = normalizeKeys(D.clientes,    {n:'cliente',tv:'tipoVenta',e:'efectivo',t:'transferencia',v:'totalVenta',u:'ubicacion',s:'saldoCredito'});
+  D.clientes    = normalizeKeys(D.clientes,    {n:'cliente',tv:'tipoVenta',e:'efectivo',t:'transferencia',v:'totalVenta',s:'saldoCredito'});
   D.productos   = normalizeKeys(D.productos,   {p:'producto',pr:'presentacion',pc:'precio',cp:'canPres',c:'cantidad'});
   D.despachados = normalizeKeys(D.despachados, {p:'producto',c:'cantidad'});
   D.noVendidos  = normalizeKeys(D.noVendidos,  {p:'producto',c:'cantidad'});
@@ -863,38 +848,6 @@ function abrirModal(row) {
     saldoWrap.className = 'modal-saldo sin-dato';
   }
 
-  // Mapa Ubicación (formato AppSheet LatLong: "15.123456, -87.654321")
-  const mapaContainer = document.getElementById('m-mapa-container');
-  if (row.ubicacion && String(row.ubicacion).trim() !== '') {
-    const coords = String(row.ubicacion).trim().split(',');
-    if (coords.length === 2) {
-      const lat = parseFloat(coords[0].trim());
-      const lng = parseFloat(coords[1].trim());
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const zoom = 16;
-        const label = encodeURIComponent(nombre);
-        // OpenStreetMap embed — no requiere API key
-        const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.003}%2C${lat-0.003}%2C${lng+0.003}%2C${lat+0.003}&layer=mapnik&marker=${lat}%2C${lng}`;
-        const osmLink = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${zoom}/${lat}/${lng}`;
-        mapaContainer.innerHTML = `
-          <div class="modal-map-wrap">
-            <iframe src="${osmUrl}" loading="lazy" title="Ubicación de ${nombre}"></iframe>
-            <span class="modal-map-label">📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
-          </div>
-          <a href="${osmLink}" target="_blank" rel="noopener"
-             style="display:block;text-align:center;font-size:11px;color:var(--azul-claro);margin-top:6px;text-decoration:none;">
-            Ver en mapa completo ↗
-          </a>`;
-      } else {
-        mapaContainer.innerHTML = '<div class="modal-no-ubicacion">📍 Coordenadas inválidas</div>';
-      }
-    } else {
-      mapaContainer.innerHTML = '<div class="modal-no-ubicacion">📍 Formato de ubicación no reconocido</div>';
-    }
-  } else {
-    mapaContainer.innerHTML = '<div class="modal-no-ubicacion">📍 Ubicación no registrada para este cliente</div>';
-  }
-
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -953,9 +906,6 @@ window.addEventListener("DOMContentLoaded", render);
         <span class="modal-saldo-label">💳 Saldo Crédito</span>
         <span class="modal-saldo-val" id="m-saldo">—</span>
       </div>
-
-      <!-- Mapa Ubicación -->
-      <div id="m-mapa-container"></div>
 
     </div>
   </div>
