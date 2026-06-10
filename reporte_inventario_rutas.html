@@ -3,138 +3,186 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reporte de Inventario por Ruta</title>
+<title>Reporte de Inventario por Ruta — Ribereña</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --verde: #1D9E75; --verde-bg: #E1F5EE; --verde-text: #085041;
-    --rojo: #E24B4A; --rojo-bg: #FCEBEB; --rojo-text: #501313;
-    --azul: #378ADD; --azul-bg: #E6F1FB; --azul-text: #042C53;
-    --gris: #5F5E5A; --gris-claro: #F1EFE8; --borde: #D3D1C7;
-    --texto: #2C2C2A; --texto-sec: #888780; --blanco: #ffffff;
+    --azul:      #0A2342;
+    --azul-med:  #164474;
+    --azul-claro:#1A6BAF;
+    --acento:    #00B4D8;
+    --blanco:    #FFFFFF;
+    --gris-bg:   #F4F6FA;
+    --gris-borde:#CBD5E1;
+    --gris-texto:#64748B;
+    --verde:     #059669;
+    --verde-bg:  #DCFCE7;
+    --verde-text:#166534;
+    --rojo:      #DC2626;
+    --rojo-bg:   #FEE2E2;
+    --rojo-text: #991B1B;
+    --radio:     6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F7F4; color: var(--texto); font-size: 14px; min-height: 100vh; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gris-bg); color: var(--azul); font-size: 13px; line-height: 1.5; min-height: 100vh; }
 
-  .header { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; }
-  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--verde); display: inline-block; }
-  .h-title { font-size: 16px; font-weight: 600; }
-  .h-sub { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
-  .nav-link { font-size: 12px; font-weight: 500; color: var(--azul); text-decoration: none; border: 1px solid var(--azul-bg); background: var(--azul-bg); padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
-  .nav-link:hover { background: #B5D4F4; }
+  /* HEADER */
+  .top-header {
+    background: var(--azul); color: var(--blanco);
+    padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100;
+  }
+  .top-header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-wrap { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.10); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .logo-wrap img { width: 28px; height: 28px; object-fit: contain; filter: brightness(0) invert(1); }
+  .top-header-titles .sup { font-size: 9px; color: var(--acento); letter-spacing: 1.5px; text-transform: uppercase; }
+  .top-header-titles h1 { font-family: 'DM Serif Display', serif; font-size: 17px; font-weight: 400; line-height: 1.2; }
+  .top-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .nav-pill { font-size: 11px; font-weight: 600; color: var(--acento); text-decoration: none; border: 1px solid rgba(0,180,216,.3); background: rgba(0,180,216,.08); padding: 5px 12px; border-radius: 20px; white-space: nowrap; transition: background .15s; }
+  .nav-pill:hover { background: rgba(0,180,216,.18); }
+  .updated-tag { font-size: 10px; color: rgba(255,255,255,.45); letter-spacing: .4px; }
 
-  .filtros { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .filtros label { font-size: 12px; color: var(--texto-sec); font-weight: 500; }
-  .filtros input[type="date"] { border: 1px solid var(--borde); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--texto); background: var(--blanco); outline: none; }
-  .filtros input[type="date"]:focus { border-color: var(--verde); }
-  .btn { background: var(--verde); color: white; border: none; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
-  .btn:hover { background: #0F6E56; }
-  .btn:disabled { background: var(--borde); cursor: not-allowed; }
-  .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  /* FILTROS */
+  .filtros-bar {
+    background: var(--blanco); border-bottom: 1px solid var(--gris-borde);
+    padding: 10px 28px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .filtros-bar label { font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .5px; }
+  .filtros-bar input[type="date"] { border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 6px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--azul); background: var(--blanco); outline: none; }
+  .filtros-bar input[type="date"]:focus { border-color: var(--acento); }
+  .btn-cargar { background: var(--azul); color: var(--blanco); border: none; border-radius: var(--radio); padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
+  .btn-cargar:hover { opacity: .85; }
+  .btn-cargar:disabled { opacity: .5; cursor: not-allowed; }
+  .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; padding: 20px 24px 0; }
-  .card-stat { background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 14px 16px; text-align: center; }
-  .card-stat .num { font-size: 26px; font-weight: 700; margin-bottom: 3px; }
-  .card-stat .lbl { font-size: 11px; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; }
+  /* RESUMEN CARDS */
+  .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; padding: 20px 28px 0; }
+  .card-stat { background: var(--blanco); border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 13px 14px; text-align: center; }
+  .card-stat .num { font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 500; margin-bottom: 4px; color: var(--azul); }
+  .card-stat .lbl { font-size: 10px; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; font-weight: 600; }
   .card-stat.verde .num { color: var(--verde); }
   .card-stat.rojo .num { color: var(--rojo); }
-  .card-stat.gris .num { color: var(--gris); }
 
   /* GRÁFICO */
-  .grafico-wrap { margin: 20px 24px 0; background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 16px 20px; }
-  .grafico-titulo { font-size: 12px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .grafico-wrap { margin: 16px 28px 0; background: var(--blanco); border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 16px 20px; }
+  .grafico-titulo { font-size: 10px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .grafico-titulo::before { content:''; display:block; width:3px; height:12px; background:var(--acento); border-radius:2px; }
   .barras { display: flex; flex-direction: column; gap: 7px; }
   .barra-row { display: flex; align-items: center; gap: 8px; }
-  .barra-label { font-size: 12px; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 120px; max-width: 160px; flex-shrink: 0; }
-  .barra-track { flex: 1; background: var(--gris-claro); border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
-  .barra-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .barra-label { font-size: 11px; color: var(--azul); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 130px; max-width: 170px; flex-shrink: 0; }
+  .barra-track { flex: 1; background: var(--gris-bg); border-radius: 3px; height: 16px; overflow: hidden; }
+  .barra-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
   .barra-fill.falta { background: var(--rojo); }
   .barra-fill.ok { background: var(--verde); }
-  .barra-val { font-size: 11px; font-weight: 600; min-width: 32px; text-align: right; flex-shrink: 0; }
-  .barra-val.falta { color: var(--rojo-text); }
-  .barra-val.ok { color: var(--verde-text); }
-  .grafico-leyenda { display: flex; gap: 16px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--gris-claro); }
-  .gl-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--texto-sec); }
+  .barra-val { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; min-width: 32px; text-align: right; flex-shrink: 0; }
+  .barra-val.falta { color: var(--rojo); }
+  .barra-val.ok { color: var(--verde); }
+  .grafico-leyenda { display: flex; gap: 16px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--gris-borde); }
+  .gl-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gris-texto); }
   .gl-dot { width: 8px; height: 8px; border-radius: 2px; }
 
-  .main { padding: 20px 24px; }
-  .rutas-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  /* MAIN */
+  .main { padding: 16px 28px; }
+  .rutas-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 
-  .ruta-card { background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
-  .ruta-card.ok { border-left: 4px solid var(--verde); }
-  .ruta-card.falta { border-left: 4px solid var(--rojo); }
-  .ruta-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; flex-wrap: wrap; }
-  .ruta-header:hover { background: var(--gris-claro); }
-  .ruta-nombre { font-weight: 600; font-size: 14px; }
-  .ruta-responsable { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
-  .ruta-nums { display: flex; gap: 16px; align-items: center; }
-  .num-item { text-align: center; }
-  .num-item .n { font-size: 15px; font-weight: 600; }
-  .num-item .l { font-size: 10px; color: var(--texto-sec); text-transform: uppercase; }
-  .ruta-badges { display: flex; align-items: center; gap: 8px; }
-  .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-  .badge.ok { background: var(--verde-bg); color: var(--verde-text); }
-  .badge.falta { background: var(--rojo-bg); color: var(--rojo-text); }
-  .chevron { font-size: 14px; color: var(--texto-sec); transition: transform 0.2s; }
-  .ruta-card.open .chevron { transform: rotate(180deg); }
-  .ruta-detalle { display: none; border-top: 1px solid var(--borde); }
-  .ruta-card.open .ruta-detalle { display: block; }
-  .detalle-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .detalle-table th { background: var(--gris-claro); padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.4px; }
-  .detalle-table th.r, .detalle-table td.r { text-align: right; }
-  .detalle-table td { padding: 8px 12px; border-top: 1px solid var(--gris-claro); }
-  .detalle-table tr:hover td { background: #fafaf8; }
-  .dif-falta { color: var(--rojo); font-weight: 600; }
-  .dif-ok { color: var(--verde); font-weight: 600; }
-  .dif-cero { color: var(--texto-sec); }
-
-  .estado { text-align: center; padding: 60px 24px; color: var(--texto-sec); }
-  .estado .ico { font-size: 40px; margin-bottom: 12px; }
-  .estado h3 { font-size: 15px; font-weight: 600; color: var(--texto); margin-bottom: 6px; }
-  .estado p { font-size: 13px; line-height: 1.6; max-width: 380px; margin: 0 auto; }
-  .error-box { background: var(--rojo-bg); border: 1px solid #F7C1C1; border-radius: 8px; padding: 12px 16px; color: var(--rojo-text); font-size: 13px; margin: 16px 24px; line-height: 1.5; }
-  .sec-titulo { font-size: 13px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-  .leyenda { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-  .ley-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--texto-sec); }
-  .ley-dot { width: 10px; height: 10px; border-radius: 2px; }
+  /* SEC TITULO */
+  .sec-titulo { font-size: 10px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .leyenda { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .ley-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gris-texto); }
+  .ley-dot { width: 8px; height: 8px; border-radius: 2px; }
   .ley-dot.verde { background: var(--verde); }
   .ley-dot.rojo { background: var(--rojo); }
-  .btn-appsheet { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; border:1px solid var(--borde); background:var(--blanco); color:var(--gris); text-decoration:none; white-space:nowrap; transition:background 0.15s,color 0.15s; }
-  .btn-appsheet:hover { background:var(--gris-claro); color:var(--texto); }
+
+  /* RUTA CARDS */
+  .ruta-card { background: var(--blanco); border: 1px solid var(--gris-borde); border-radius: var(--radio); overflow: hidden; }
+  .ruta-card.ok { border-left: 4px solid var(--verde); }
+  .ruta-card.falta { border-left: 4px solid var(--rojo); }
+  .ruta-header { padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; flex-wrap: wrap; }
+  .ruta-header:hover { background: var(--gris-bg); }
+  .ruta-nombre { font-weight: 600; font-size: 13px; color: var(--azul); }
+  .ruta-responsable { font-size: 11px; color: var(--gris-texto); margin-top: 2px; }
+  .ruta-nums { display: flex; gap: 16px; align-items: center; }
+  .num-item { text-align: center; }
+  .num-item .n { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--azul); }
+  .num-item .l { font-size: 9px; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .4px; margin-top: 1px; }
+  .ruta-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 20px; white-space: nowrap; letter-spacing: .3px; }
+  .badge.ok { background: var(--verde-bg); color: var(--verde-text); }
+  .badge.falta { background: var(--rojo-bg); color: var(--rojo-text); }
+  .chevron { font-size: 13px; color: var(--gris-texto); transition: transform .2s; }
+  .ruta-card.open .chevron { transform: rotate(180deg); }
+  .ruta-detalle { display: none; border-top: 1px solid var(--gris-borde); }
+  .ruta-card.open .ruta-detalle { display: block; }
+
+  /* TABLA DETALLE */
+  .detalle-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .detalle-table th { background: var(--azul); color: var(--blanco); padding: 8px 12px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+  .detalle-table th.r, .detalle-table td.r { text-align: right; }
+  .detalle-table td { padding: 8px 12px; border-top: 1px solid var(--gris-borde); color: var(--azul); }
+  .detalle-table td.r { font-family: 'DM Mono', monospace; font-size: 11.5px; }
+  .detalle-table tr:nth-child(even) td { background: var(--gris-bg); }
+  .dif-falta { color: var(--rojo); font-weight: 700; }
+  .dif-ok { color: var(--verde); font-weight: 700; }
+  .dif-cero { color: var(--gris-texto); }
+
+  /* BOTÓN APPSHEET */
+  .btn-appsheet { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:600; padding:3px 10px; border-radius:20px; border:1px solid rgba(0,180,216,.3); background:rgba(0,180,216,.08); color:var(--acento); text-decoration:none; white-space:nowrap; transition:background .15s; }
+  .btn-appsheet:hover { background:rgba(0,180,216,.18); }
+
+  /* ESTADO / ERROR */
+  .estado { text-align: center; padding: 60px 24px; color: var(--gris-texto); }
+  .estado .ico { font-size: 38px; margin-bottom: 12px; }
+  .estado h3 { font-family: 'DM Serif Display', serif; font-size: 18px; font-weight: 400; color: var(--azul); margin-bottom: 6px; }
+  .estado p { font-size: 12px; line-height: 1.6; max-width: 340px; margin: 0 auto; }
+  .error-box { background: var(--rojo-bg); border: 1px solid #FECACA; border-radius: var(--radio); padding: 10px 16px; color: var(--rojo-text); font-size: 12px; margin: 14px 28px; line-height: 1.5; }
+
+  /* FOOTER */
+  .page-footer { background: var(--azul); color: rgba(255,255,255,.4); padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: .6px; margin-top: 32px; }
+  .page-footer strong { color: var(--acento); }
 
   @media (max-width: 600px) {
-    .header, .filtros, .main, .resumen, .grafico-wrap { padding-left: 14px; padding-right: 14px; }
+    .top-header, .filtros-bar, .main, .resumen { padding-left: 14px; padding-right: 14px; }
+    .grafico-wrap { margin-left: 14px; margin-right: 14px; }
     .resumen { grid-template-columns: repeat(2, 1fr); }
     .ruta-nums { gap: 10px; }
-    .detalle-table { font-size: 12px; }
-    .detalle-table th, .detalle-table td { padding: 7px 8px; }
-    .barra-label { min-width: 80px; max-width: 100px; }
+    .detalle-table { font-size: 11px; }
+    .barra-label { min-width: 90px; max-width: 110px; }
+  }
+  @media print {
+    .top-header, .filtros-bar, .page-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .filtros-bar { display: none; }
   }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span class="logo-dot"></span>
-    <div>
-      <div class="h-title">Reporte de Inventario por Ruta</div>
-      <div class="h-sub">Auditoría: Despachado − Vendido − No Vendido</div>
+<!-- HEADER -->
+<div class="top-header">
+  <div class="top-header-left">
+    <div class="logo-wrap">
+      <img src="https://drive.google.com/thumbnail?id=1-AjJ5DUWQtqArYaK9aQOxixJwG32frEG&sz=w128" alt="Ribereña" onerror="this.parentElement.innerHTML='<span style=\'font-family:DM Serif Display,serif;font-size:16px;color:#00B4D8\'>R</span>'">
+    </div>
+    <div class="top-header-titles">
+      <div class="sup">Distribución</div>
+      <h1>Inventario por Ruta</h1>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <a href="reporte_regalias.html" class="nav-link">🎁 Ver Regalías →</a>
-    <div id="ultima-act" style="font-size:11px;color:var(--texto-sec);"></div>
+  <div class="top-header-right">
+    <a href="reporte_regalias.html" class="nav-pill">🎁 Regalías</a>
+    <a href="reporte_cierre_ventas_gsheets.html" class="nav-pill">📋 Cierre</a>
+    <span class="updated-tag" id="ultima-act"></span>
   </div>
 </div>
 
-<div class="filtros">
+<!-- FILTROS -->
+<div class="filtros-bar">
   <label>Desde</label>
   <input type="date" id="fecha-inicio">
-  <span style="color:var(--borde);">—</span>
+  <span style="color:var(--gris-borde);">—</span>
   <label>Hasta</label>
   <input type="date" id="fecha-fin">
-  <button class="btn" id="btn-cargar" onclick="cargarDatos()">
+  <button class="btn-cargar" id="btn-cargar" onclick="cargarDatos()">
     <div class="spinner" id="spinner"></div>
     <span id="btn-texto">Cargar datos</span>
   </button>
@@ -142,11 +190,12 @@
 
 <div id="error-container"></div>
 
+<!-- RESUMEN -->
 <div class="resumen" id="resumen" style="display:none;">
-  <div class="card-stat gris"><div class="num" id="s-rutas">—</div><div class="lbl">Rutas</div></div>
-  <div class="card-stat gris"><div class="num" id="s-desp">—</div><div class="lbl">Despachado</div></div>
-  <div class="card-stat gris"><div class="num" id="s-vend">—</div><div class="lbl">Vendido</div></div>
-  <div class="card-stat gris"><div class="num" id="s-nv">—</div><div class="lbl">No vendido</div></div>
+  <div class="card-stat"><div class="num" id="s-rutas">—</div><div class="lbl">Rutas</div></div>
+  <div class="card-stat"><div class="num" id="s-desp">—</div><div class="lbl">Despachado</div></div>
+  <div class="card-stat"><div class="num" id="s-vend">—</div><div class="lbl">Vendido</div></div>
+  <div class="card-stat"><div class="num" id="s-nv">—</div><div class="lbl">No vendido</div></div>
   <div class="card-stat verde"><div class="num" id="s-ok">—</div><div class="lbl">Sin diferencia</div></div>
   <div class="card-stat rojo"><div class="num" id="s-falta">—</div><div class="lbl">Con diferencia</div></div>
 </div>
@@ -156,9 +205,15 @@
 <div class="main" id="main-content">
   <div class="estado">
     <div class="ico">📦</div>
-    <h3>Selecciona un rango de fechas</h3>
-    <p>Elige las fechas y presiona <strong>Cargar datos</strong> para ver la auditoría de inventario por ruta.</p>
+    <h3>Auditoría de Inventario</h3>
+    <p>Selecciona un rango de fechas y presiona <strong>Cargar datos</strong> para ver la reconciliación por ruta.</p>
   </div>
+</div>
+
+<div class="page-footer">
+  <span>Ribereña Distribución · Sistema de Gestión de Rutas</span>
+  <strong>Inventario por Ruta</strong>
+  <span>v2.0</span>
 </div>
 
 <script>
@@ -168,280 +223,102 @@ const SHEETS = {
   otProducto:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=392195505&single=true&output=csv',
   merRuta:         'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=0&single=true&output=csv'
 };
+function parseCSVLine(line){const r=[];let c='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'&&!inQ){inQ=true;}else if(ch==='"'&&inQ){inQ=false;}else if(ch===','&&!inQ){r.push(c.trim());c='';}else{c+=ch;}}r.push(c.trim());return r;}
+function parseCSV(text){const lines=text.trim().split('\n');if(lines.length<2)return[];const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));return lines.slice(1).map(line=>{const vals=parseCSVLine(line);const obj={};headers.forEach((h,i)=>{obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,'');});return obj;}).filter(r=>Object.values(r).some(v=>v!==''));}
+async function fetchCSV(url){const resp=await fetch(url);if(!resp.ok)throw new Error(`HTTP ${resp.status}`);return parseCSV(await resp.text());}
+function normFecha(f){if(!f)return'';f=f.trim();if(/^\d{4}-\d{2}-\d{2}/.test(f))return f.substring(0,10);const p=f.split(/[\/\-]/);if(p.length===3){if(p[0].length===4)return`${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;return`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}return f;}
+function enRango(f,d,h){const n=normFecha(f);return n>=d&&n<=h;}
+function hoy(){return new Date().toISOString().split('T')[0];}
+function fmt(n){return Math.round(n).toLocaleString('es');}
+function fmtF(f){if(!f)return'';const[y,m,d]=f.split('-');return`${d}/${m}/${y}`;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-function parseCSVLine(line) {
-  const r=[]; let c='', inQ=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch==='"'){inQ=!inQ;}
-    else if(ch===','&&!inQ){r.push(c);c='';}
-    else{c+=ch;}
-  }
-  r.push(c); return r;
-}
-function parseCSV(text) {
-  const lines=text.trim().split('\n');
-  if(lines.length<2) return [];
-  const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
-  return lines.slice(1).map(line=>{
-    const vals=parseCSVLine(line);
-    const obj={};
-    headers.forEach((h,i)=>{ obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,''); });
-    return obj;
-  }).filter(r=>Object.values(r).some(v=>v!==''));
-}
-async function fetchCSV(url) {
-  const resp=await fetch(url);
-  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  return parseCSV(await resp.text());
-}
-function normFecha(f) {
-  if(!f) return '';
-  f=f.trim();
-  if(/^\d{4}-\d{2}-\d{2}/.test(f)) return f.substring(0,10);
-  const p=f.split(/[\/\-]/);
-  if(p.length===3){
-    if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-    // dd/mm/yyyy — formato confirmado de AppSheet Honduras
-    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-  }
-  return f;
-}
-function enRango(f,d,h){ const n=normFecha(f); return n>=d&&n<=h; }
-function hoy(){ return new Date().toISOString().split('T')[0]; }
-function fmt(n){ return Math.round(n).toLocaleString('es'); }
-function fmtF(f){ if(!f)return''; const[y,m,d]=f.split('-'); return`${d}/${m}/${y}`; }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-async function cargarDatos() {
+async function cargarDatos(){
   const desde=document.getElementById('fecha-inicio').value;
   const hasta=document.getElementById('fecha-fin').value;
   if(!desde||!hasta){mostrarError('Selecciona un rango de fechas.');return;}
   if(desde>hasta){mostrarError('La fecha inicio debe ser anterior a la fecha final.');return;}
-  setLoading(true); limpiarError();
-
-  try {
-    const [detalleRows,nvRows,otRows,rutaRows]=await Promise.all([
-      fetchCSV(SHEETS.despachoDetalle),
-      fetchCSV(SHEETS.noVendido),
-      fetchCSV(SHEETS.otProducto),
-      fetchCSV(SHEETS.merRuta)
-    ]);
-
-    const rutasFiltradas=rutaRows.filter(r=>
-      enRango(r['Fecha'],desde,hasta)&&r['ELIMINADO']!=='Y'&&r['RUTA']&&r['RUTA']!==''
-    );
-    if(rutasFiltradas.length===0){
-      mostrarVacio('Sin rutas en el período','No se encontraron rutas entre las fechas seleccionadas.');
-      document.getElementById('grafico-container').style.display='none';
-      setLoading(false); return;
-    }
-
+  setLoading(true);limpiarError();
+  try{
+    const[detalleRows,nvRows,otRows,rutaRows]=await Promise.all([fetchCSV(SHEETS.despachoDetalle),fetchCSV(SHEETS.noVendido),fetchCSV(SHEETS.otProducto),fetchCSV(SHEETS.merRuta)]);
+    const rutasFiltradas=rutaRows.filter(r=>enRango(r['Fecha'],desde,hasta)&&r['ELIMINADO']!=='Y'&&r['RUTA']&&r['RUTA']!=='');
+    if(rutasFiltradas.length===0){mostrarVacio('Sin rutas en el período','No se encontraron rutas entre las fechas seleccionadas.');setLoading(false);return;}
     const idOpARuta={};
-    rutasFiltradas.forEach(r=>{
-      (r['Despacho']||'').split(',').forEach(idOp=>{
-        const k=idOp.trim();
-        if(k) idOpARuta[k]={ruta:r['RUTA'],responsable:r['Responsable']||''};
-      });
-    });
-
-    const despMap={}, nvMap={}, vendMap={};
-    detalleRows.forEach(r=>{
-      if(r['ELIMINADO']==='Y') return;
-      const info=idOpARuta[r['ID_OP']]; if(!info) return;
-      const k=`${info.ruta}||${r['Producto']}`;
-      despMap[k]=(despMap[k]||0)+(parseFloat(r['Cantidad'])||0);
-    });
-    nvRows.forEach(r=>{
-      if(r['ELIMINADO']==='Y') return;
-      const info=idOpARuta[r['ID_OP']]; if(!info) return;
-      const k=`${info.ruta}||${r['Producto']}`;
-      nvMap[k]=(nvMap[k]||0)+(parseFloat(r['Cantidad'])||0);
-    });
+    rutasFiltradas.forEach(r=>{(r['Despacho']||'').split(',').forEach(idOp=>{const k=idOp.trim();if(k)idOpARuta[k]={ruta:r['RUTA'],responsable:r['Responsable']||''};});});
+    const despMap={},nvMap={},vendMap={};
+    detalleRows.forEach(r=>{if(r['ELIMINADO']==='Y')return;const info=idOpARuta[r['ID_OP']];if(!info)return;const k=`${info.ruta}||${r['Producto']}`;despMap[k]=(despMap[k]||0)+(parseFloat(r['Cantidad'])||0);});
+    nvRows.forEach(r=>{if(r['ELIMINADO']==='Y')return;const info=idOpARuta[r['ID_OP']];if(!info)return;const k=`${info.ruta}||${r['Producto']}`;nvMap[k]=(nvMap[k]||0)+(parseFloat(r['Cantidad'])||0);});
     const rutasSet=new Set(rutasFiltradas.map(r=>r['RUTA']));
-    otRows.forEach(r=>{
-      if(r['ELIMINADO']==='Y') return;
-      if(!rutasSet.has(r['Ruta'])) return;
-      if(!enRango(r['Fecha'],desde,hasta)) return;
-      const k=`${r['Ruta']}||${r['Producto']}`;
-      vendMap[k]=(vendMap[k]||0)+(parseFloat(r['Cantidad'])||0);
-    });
-
+    otRows.forEach(r=>{if(r['ELIMINADO']==='Y')return;if(!rutasSet.has(r['Ruta']))return;if(!enRango(r['Fecha'],desde,hasta))return;const k=`${r['Ruta']}||${r['Producto']}`;vendMap[k]=(vendMap[k]||0)+(parseFloat(r['Cantidad'])||0);});
     const todasKeys=new Set([...Object.keys(despMap),...Object.keys(nvMap),...Object.keys(vendMap)]);
-    const porRuta={};
-    // Acumular diferencia por producto (global, todas las rutas)
-    const difPorProducto={};
-
-    todasKeys.forEach(key=>{
-      const [ruta,producto]=key.split('||');
-      if(!porRuta[ruta]){
-        const ri=rutasFiltradas.find(r=>r['RUTA']===ruta);
-        porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||''):'',fecha:ri?(ri['Fecha']||''):'',fechaNorm:ri?normFecha(ri['Fecha']||''):'',productos:[]};
-      }
-      const desp=despMap[key]||0, vend=vendMap[key]||0, nv=nvMap[key]||0, dif=desp-vend-nv;
-      porRuta[ruta].productos.push({producto,desp,vend,nv,dif});
-      // Acumular diferencia global por producto
-      if(!difPorProducto[producto]) difPorProducto[producto]={desp:0,vend:0,nv:0,dif:0};
-      difPorProducto[producto].desp+=desp;
-      difPorProducto[producto].vend+=vend;
-      difPorProducto[producto].nv+=nv;
-      difPorProducto[producto].dif+=dif;
-    });
-
-    const rutas=Object.values(porRuta).map(r=>{
-      r.totalDesp=r.productos.reduce((s,p)=>s+p.desp,0);
-      r.totalVend=r.productos.reduce((s,p)=>s+p.vend,0);
-      r.totalNV=r.productos.reduce((s,p)=>s+p.nv,0);
-      r.totalDif=r.productos.reduce((s,p)=>s+p.dif,0);
-      r.tieneFalta=r.totalDif!==0;
-      r.productos.sort((a,b)=>Math.abs(b.dif)-Math.abs(a.dif));
-      return r;
-    });
-    rutas.sort((a,b)=>{
-      // Primero descendente por fecha
-      if(b.fechaNorm > a.fechaNorm) return 1;
-      if(b.fechaNorm < a.fechaNorm) return -1;
-      // Mismo día: con diferencia primero
-      if(a.tieneFalta&&!b.tieneFalta) return -1;
-      if(!a.tieneFalta&&b.tieneFalta) return 1;
-      return a.ruta.localeCompare(b.ruta);
-    });
-
+    const porRuta={};const difPorProducto={};
+    todasKeys.forEach(key=>{const[ruta,producto]=key.split('||');if(!porRuta[ruta]){const ri=rutasFiltradas.find(r=>r['RUTA']===ruta);porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||''):'',fecha:ri?(ri['Fecha']||''):'',fechaNorm:ri?normFecha(ri['Fecha']||''):'',productos:[]};}const desp=despMap[key]||0,vend=vendMap[key]||0,nv=nvMap[key]||0,dif=desp-vend-nv;porRuta[ruta].productos.push({producto,desp,vend,nv,dif});if(!difPorProducto[producto])difPorProducto[producto]={dif:0};difPorProducto[producto].dif+=dif;});
+    const rutas=Object.values(porRuta).map(r=>{r.totalDesp=r.productos.reduce((s,p)=>s+p.desp,0);r.totalVend=r.productos.reduce((s,p)=>s+p.vend,0);r.totalNV=r.productos.reduce((s,p)=>s+p.nv,0);r.totalDif=r.productos.reduce((s,p)=>s+p.dif,0);r.tieneFalta=r.totalDif!==0;r.productos.sort((a,b)=>Math.abs(b.dif)-Math.abs(a.dif));return r;});
+    rutas.sort((a,b)=>{if(b.fechaNorm>a.fechaNorm)return 1;if(b.fechaNorm<a.fechaNorm)return-1;if(a.tieneFalta&&!b.tieneFalta)return-1;if(!a.tieneFalta&&b.tieneFalta)return 1;return a.ruta.localeCompare(b.ruta);});
+    document.getElementById('s-rutas').textContent=rutas.length;
+    document.getElementById('s-desp').textContent=fmt(rutas.reduce((s,r)=>s+r.totalDesp,0));
+    document.getElementById('s-vend').textContent=fmt(rutas.reduce((s,r)=>s+r.totalVend,0));
+    document.getElementById('s-nv').textContent=fmt(rutas.reduce((s,r)=>s+r.totalNV,0));
+    document.getElementById('s-ok').textContent=rutas.filter(r=>!r.tieneFalta).length;
+    document.getElementById('s-falta').textContent=rutas.filter(r=>r.tieneFalta).length;
+    document.getElementById('resumen').style.display='';
+    document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
     renderGrafico(difPorProducto);
     renderReporte(rutas,desde,hasta);
-
-  } catch(e) {
-    mostrarError('No se pudieron cargar los datos. Verifica que las hojas estén publicadas como CSV público.<br><small style="opacity:0.7">'+e.message+'</small>');
-    document.getElementById('grafico-container').style.display='none';
-  }
+  }catch(e){mostrarError('No se pudieron cargar los datos.<br><small style="opacity:.7">'+e.message+'</small>');document.getElementById('grafico-container').style.display='none';}
   setLoading(false);
 }
 
-function renderGrafico(difPorProducto) {
-  // Solo productos con diferencia != 0, ordenados por magnitud
-  const productos = Object.entries(difPorProducto)
-    .filter(([,v])=>v.dif!==0)
-    .sort((a,b)=>Math.abs(b[1].dif)-Math.abs(a[1].dif))
-    .slice(0,20); // max 20 productos
-
-  if(productos.length===0){
-    document.getElementById('grafico-container').style.display='none';
-    return;
-  }
-
+function renderGrafico(difPorProducto){
+  const productos=Object.entries(difPorProducto).filter(([,v])=>v.dif!==0).sort((a,b)=>Math.abs(b[1].dif)-Math.abs(a[1].dif)).slice(0,20);
+  if(productos.length===0){document.getElementById('grafico-container').style.display='none';return;}
   const maxAbs=Math.max(...productos.map(([,v])=>Math.abs(v.dif)));
-
   let barras='';
-  productos.forEach(([prod,v])=>{
-    const pct=Math.round((Math.abs(v.dif)/maxAbs)*100);
-    const cls=v.dif>0?'falta':'ok';
-    const signo=v.dif>0?'−':'+';
-    barras+=`
-      <div class="barra-row">
-        <div class="barra-label" title="${esc(prod)}">${esc(prod)}</div>
-        <div class="barra-track">
-          <div class="barra-fill ${cls}" style="width:${pct}%"></div>
-        </div>
-        <div class="barra-val ${cls}">${signo}${fmt(Math.abs(v.dif))}</div>
-      </div>`;
-  });
-
+  productos.forEach(([prod,v])=>{const pct=Math.round((Math.abs(v.dif)/maxAbs)*100);const cls=v.dif>0?'falta':'ok';const signo=v.dif>0?'−':'+';barras+=`<div class="barra-row"><div class="barra-label" title="${esc(prod)}">${esc(prod)}</div><div class="barra-track"><div class="barra-fill ${cls}" style="width:${pct}%"></div></div><div class="barra-val ${cls}">${signo}${fmt(Math.abs(v.dif))}</div></div>`;});
   document.getElementById('grafico-container').style.display='';
-  document.getElementById('grafico-container').innerHTML=`
-    <div class="grafico-wrap">
-      <div class="grafico-titulo">Diferencia acumulada por producto — todas las rutas del período</div>
-      <div class="barras">${barras}</div>
-      <div class="grafico-leyenda">
-        <div class="gl-item"><div class="gl-dot" style="background:var(--rojo)"></div> Unidades sin rendir (falta)</div>
-        <div class="gl-item"><div class="gl-dot" style="background:var(--verde)"></div> Exceso reportado</div>
-      </div>
-    </div>`;
+  document.getElementById('grafico-container').innerHTML=`<div class="grafico-wrap"><div class="grafico-titulo">Diferencia acumulada por producto — todas las rutas del período</div><div class="barras">${barras}</div><div class="grafico-leyenda"><div class="gl-item"><div class="gl-dot" style="background:var(--rojo)"></div>Unidades sin rendir</div><div class="gl-item"><div class="gl-dot" style="background:var(--verde)"></div>Exceso reportado</div></div></div>`;
 }
 
-function renderReporte(rutas,desde,hasta) {
-  document.getElementById('s-rutas').textContent=rutas.length;
-  document.getElementById('s-desp').textContent=fmt(rutas.reduce((s,r)=>s+r.totalDesp,0));
-  document.getElementById('s-vend').textContent=fmt(rutas.reduce((s,r)=>s+r.totalVend,0));
-  document.getElementById('s-nv').textContent=fmt(rutas.reduce((s,r)=>s+r.totalNV,0));
-  document.getElementById('s-ok').textContent=rutas.filter(r=>!r.tieneFalta).length;
-  document.getElementById('s-falta').textContent=rutas.filter(r=>r.tieneFalta).length;
-  document.getElementById('resumen').style.display='';
-  document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
-
+function renderReporte(rutas,desde,hasta){
   const fechaStr=desde===hasta?fmtF(desde):`${fmtF(desde)} – ${fmtF(hasta)}`;
-  let html=`
-    <div class="sec-titulo" style="margin-bottom:12px;">
-      <span>${rutas.length} rutas &middot; ${fechaStr}</span>
-      <div class="leyenda">
-        <div class="ley-item"><div class="ley-dot verde"></div> Sin diferencia</div>
-        <div class="ley-item"><div class="ley-dot rojo"></div> Con diferencia</div>
-      </div>
-    </div>
-    <div class="rutas-grid">`;
-
+  let html=`<div class="sec-titulo"><span>${rutas.length} rutas &middot; ${fechaStr}</span><div class="leyenda"><div class="ley-item"><div class="ley-dot verde"></div>Sin diferencia</div><div class="ley-item"><div class="ley-dot rojo"></div>Con diferencia</div></div></div><div class="rutas-grid">`;
   rutas.forEach((r,i)=>{
     const cls=r.tieneFalta?'falta':'ok';
     const badgeTxt=r.tieneFalta?`⚠ ${fmt(Math.abs(r.totalDif))} unid. sin rendir`:'✓ Cuadra';
     const appsheetUrl=`https://www.appsheet.com/start/8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc?platform=desktop#appName=Ribere%C3%B1aApp-753059166&row=${encodeURIComponent(r.ruta)}&view=MER_RUTA_Detail`;
-    html+=`
-      <div class="ruta-card ${cls}" id="rc-${i}">
-        <div class="ruta-header" onclick="tog(${i})">
-          <div>
-            <div class="ruta-nombre">Ruta ${esc(r.ruta)}</div>
-            <div class="ruta-responsable">${esc(r.responsable)}${r.fecha ? ` &nbsp;·&nbsp; <span style="color:var(--texto-sec);font-weight:400;">${esc(r.fecha)}</span>` : ''}</div>
-          </div>
-          <div class="ruta-nums">
-            <div class="num-item"><div class="n">${fmt(r.totalDesp)}</div><div class="l">Desp.</div></div>
-            <div class="num-item"><div class="n">${fmt(r.totalVend)}</div><div class="l">Vend.</div></div>
-            <div class="num-item"><div class="n">${fmt(r.totalNV)}</div><div class="l">No vend.</div></div>
-          </div>
-          <div class="ruta-badges">
-            <span class="badge ${cls}">${badgeTxt}</span>
-            <a href="${appsheetUrl}" target="_blank" onclick="event.stopPropagation()" class="btn-appsheet" title="Ver en AppSheet">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              AppSheet
-            </a>
-            <span class="chevron">▾</span>
-          </div>
+    html+=`<div class="ruta-card ${cls}" id="rc-${i}">
+      <div class="ruta-header" onclick="tog(${i})">
+        <div><div class="ruta-nombre">Ruta ${esc(r.ruta)}</div><div class="ruta-responsable">${esc(r.responsable)}${r.fecha?` · <span style="font-weight:400">${esc(r.fecha)}</span>`:''}</div></div>
+        <div class="ruta-nums">
+          <div class="num-item"><div class="n">${fmt(r.totalDesp)}</div><div class="l">Desp.</div></div>
+          <div class="num-item"><div class="n">${fmt(r.totalVend)}</div><div class="l">Vend.</div></div>
+          <div class="num-item"><div class="n">${fmt(r.totalNV)}</div><div class="l">No vend.</div></div>
         </div>
-        <div class="ruta-detalle">
-          <table class="detalle-table">
-            <thead><tr>
-              <th>Producto</th><th class="r">Despachado</th><th class="r">Vendido</th><th class="r">No vendido</th><th class="r">Diferencia</th>
-            </tr></thead>
-            <tbody>
-              ${r.productos.map(p=>{
-                let dc='dif-cero',dt='—';
-                if(p.dif>0){dc='dif-falta';dt=`−${fmt(p.dif)}`;}
-                else if(p.dif<0){dc='dif-ok';dt=`+${fmt(Math.abs(p.dif))}`;}
-                return`<tr><td>${esc(p.producto)}</td><td class="r">${fmt(p.desp)}</td><td class="r">${fmt(p.vend)}</td><td class="r">${fmt(p.nv)}</td><td class="r ${dc}">${dt}</td></tr>`;
-              }).join('')}
-            </tbody>
-          </table>
+        <div class="ruta-badges">
+          <span class="badge ${cls}">${badgeTxt}</span>
+          <a href="${appsheetUrl}" target="_blank" onclick="event.stopPropagation()" class="btn-appsheet">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>AppSheet
+          </a>
+          <span class="chevron">▾</span>
         </div>
-      </div>`;
+      </div>
+      <div class="ruta-detalle">
+        <table class="detalle-table">
+          <thead><tr><th>Producto</th><th class="r">Despachado</th><th class="r">Vendido</th><th class="r">No vendido</th><th class="r">Diferencia</th></tr></thead>
+          <tbody>${r.productos.map(p=>{let dc='dif-cero',dt='—';if(p.dif>0){dc='dif-falta';dt=`−${fmt(p.dif)}`;}else if(p.dif<0){dc='dif-ok';dt=`+${fmt(Math.abs(p.dif))}`;}return`<tr><td>${esc(p.producto)}</td><td class="r">${fmt(p.desp)}</td><td class="r">${fmt(p.vend)}</td><td class="r">${fmt(p.nv)}</td><td class="r ${dc}">${dt}</td></tr>`;}).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
   });
   html+='</div>';
   document.getElementById('main-content').innerHTML=html;
 }
 
-function tog(i){ document.getElementById('rc-'+i).classList.toggle('open'); }
-function setLoading(v){
-  document.getElementById('spinner').style.display=v?'block':'none';
-  document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';
-  document.getElementById('btn-cargar').disabled=v;
-}
-function mostrarError(msg){
-  document.getElementById('error-container').innerHTML=`<div class="error-box">⚠ ${msg}</div>`;
-  document.getElementById('main-content').innerHTML='';
-  document.getElementById('resumen').style.display='none';
-}
-function limpiarError(){ document.getElementById('error-container').innerHTML=''; }
-function mostrarVacio(t,d){
-  document.getElementById('main-content').innerHTML=`<div class="estado"><div class="ico">🔍</div><h3>${t}</h3><p>${d}</p></div>`;
-  document.getElementById('resumen').style.display='none';
-}
-
+function tog(i){document.getElementById('rc-'+i).classList.toggle('open');}
+function setLoading(v){document.getElementById('spinner').style.display=v?'block':'none';document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';document.getElementById('btn-cargar').disabled=v;}
+function mostrarError(msg){document.getElementById('error-container').innerHTML=`<div class="error-box">⚠ ${msg}</div>`;document.getElementById('main-content').innerHTML='';document.getElementById('resumen').style.display='none';}
+function limpiarError(){document.getElementById('error-container').innerHTML='';}
+function mostrarVacio(t,d){document.getElementById('main-content').innerHTML=`<div class="estado"><div class="ico">🔍</div><h3>${t}</h3><p>${d}</p></div>`;document.getElementById('resumen').style.display='none';}
 document.getElementById('fecha-inicio').value=hoy();
 document.getElementById('fecha-fin').value=hoy();
 </script>
