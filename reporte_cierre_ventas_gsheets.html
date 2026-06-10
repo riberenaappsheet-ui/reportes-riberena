@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Cierre de Ventas — Ribereña</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul:      #0A2342;
+    --azul-med:  #164474;
+    --azul-claro:#1A6BAF;
+    --acento:    #00B4D8;
+    --blanco:    #FFFFFF;
+    --gris-bg:   #F4F6FA;
+    --gris-borde:#CBD5E1;
+    --gris-texto:#64748B;
+    --verde:     #059669;
+    --rojo:      #DC2626;
+    --radio:     6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gris-bg); color: var(--azul); font-size: 13px; line-height: 1.5; }
+
+  /* LOADING */
+  #loading { position: fixed; inset: 0; background: var(--azul); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 999; transition: opacity .4s; }
+  #loading .logo-wrap { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; animation: pulse 1.2s ease-in-out infinite; overflow: hidden; }
+  #loading .logo-wrap img { width: 64px; height: 64px; object-fit: contain; filter: brightness(0) invert(1); }
+  #loading p { color: rgba(255,255,255,.6); font-size: 12px; letter-spacing: 1px; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+  /* FILTROS BAR */
+  .filtros-bar {
+    max-width: 960px; margin: 0 auto 16px;
+    background: var(--blanco); border-radius: 10px;
+    border: 1px solid var(--gris-borde);
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .filtros-bar label { font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; }
+  .filtros-bar input[type="date"], .filtros-bar select {
+    border: 1px solid var(--gris-borde); border-radius: var(--radio);
+    padding: 7px 10px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--azul); background: var(--blanco); outline: none;
+  }
+  .filtros-bar input[type="date"]:focus, .filtros-bar select:focus { border-color: var(--acento); }
+  .filtros-bar select { min-width: 180px; cursor: pointer; }
+  .btn-cargar {
+    background: var(--azul); color: var(--blanco); border: none;
+    border-radius: var(--radio); padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity .15s;
+  }
+  .btn-cargar:hover { opacity: .85; }
+  .btn-cargar:disabled { opacity: .5; cursor: not-allowed; }
+  .spinner-sm { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .nav-link { font-size: 12px; font-weight: 600; color: var(--azul-claro); text-decoration: none; border: 1px solid var(--gris-borde); padding: 6px 12px; border-radius: var(--radio); white-space: nowrap; }
+  .nav-link:hover { background: var(--gris-bg); }
+  .error-bar { max-width: 960px; margin: 0 auto 14px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 16px; color: #991B1B; font-size: 12px; }
+
+  /* LISTA DE RUTAS */
+  .rutas-lista { max-width: 960px; margin: 0 auto 16px; display: flex; flex-direction: column; gap: 8px; }
+  .ruta-pill {
+    background: var(--blanco); border: 1px solid var(--gris-borde); border-radius: 8px;
+    padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+    cursor: pointer; transition: border-color .15s, box-shadow .15s;
+    border-left: 4px solid var(--gris-borde);
+  }
+  .ruta-pill:hover { border-color: var(--acento); box-shadow: 0 2px 8px rgba(0,180,216,.12); }
+  .ruta-pill.active { border-left-color: var(--acento); background: #F0FBFF; }
+  .ruta-pill .rp-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acento); background: rgba(0,180,216,.1); padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .ruta-pill .rp-fecha { font-size: 12px; color: var(--gris-texto); white-space: nowrap; }
+  .ruta-pill .rp-resp { font-size: 13px; font-weight: 600; flex: 1; }
+  .ruta-pill .rp-venta { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--verde); font-weight: 600; white-space: nowrap; }
+  .ruta-pill .rp-est { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .rp-est.cerrado { background: #DCFCE7; color: var(--verde); }
+  .rp-est.otro { background: var(--gris-bg); color: var(--gris-texto); }
+  .seccion-label { max-width: 960px; margin: 0 auto 8px; font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; padding: 0 4px; }
+
+  /* PAGE WRAPPER — mismo que original */
+  .page-wrapper { max-width: 860px; margin: 0 auto 32px; background: var(--blanco); border-radius: 12px; box-shadow: 0 4px 32px rgba(10,35,66,.12); overflow: hidden; display: none; }
+  .header { background: var(--azul); color: var(--blanco); padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .header-logo { display: flex; align-items: center; gap: 16px; }
+  .logo-img-wrap { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 6px; }
+  .logo-img-wrap img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); }
+  .header h1 { font-family: 'DM Serif Display', serif; font-size: 21px; font-weight: 400; line-height: 1.2; }
+  .header-sub { font-size: 10px; color: var(--acento); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 2px; }
+  .header-badge { background: rgba(0,180,216,.12); border: 1px solid var(--acento); border-radius: 20px; padding: 6px 18px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--acento); white-space: nowrap; text-align: right; }
+  .header-badge span { display: block; font-size: 15px; color: var(--blanco); font-weight: 500; margin-top: 1px; }
+  .body-content { padding: 26px 32px; display: flex; flex-direction: column; gap: 22px; }
+  .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--gris-borde); border-radius: var(--radio); overflow: hidden; }
+  .details-col { padding: 16px 20px; display: flex; flex-direction: column; gap: 9px; }
+  .details-col:first-child { border-right: 1px solid var(--gris-borde); }
+  .details-col-header { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gris-texto); font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--gris-borde); margin-bottom: 2px; }
+  .detail-row { display: flex; gap: 8px; align-items: baseline; }
+  .detail-label { font-weight: 600; font-size: 11px; color: var(--gris-texto); white-space: nowrap; min-width: 118px; }
+  .detail-value { font-size: 13px; color: var(--azul); }
+  .detail-value.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .badge-estatus { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .4px; background: #DCFCE7; color: var(--verde); }
+  .cierre-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
+  .kpi-card { border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 14px 14px; text-align: center; }
+  .kpi-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gris-texto); font-weight: 600; margin-bottom: 6px; }
+  .kpi-value { font-family: 'DM Mono', monospace; font-size: 17px; font-weight: 500; color: var(--azul); }
+  .kpi-card.balance .kpi-value { color: var(--verde); }
+  .kpi-card.egresos .kpi-value { color: var(--rojo); }
+  .kpi-card.deposito .kpi-value { color: var(--azul-claro); }
+  .kpi-card.credito .kpi-value { color: #D97706; }
+  .section-title { font-family: 'DM Serif Display', serif; font-size: 15px; font-weight: 400; color: var(--azul); padding-bottom: 8px; border-bottom: 2px solid var(--azul); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .section-title::before { content:''; display:block; width:4px; height:16px; background:var(--acento); border-radius:2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead tr { background: var(--azul); color: var(--blanco); }
+  thead th { padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px; letter-spacing: .4px; }
+  thead th:not(:first-child) { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--gris-borde); }
+  tbody tr:nth-child(even) { background: var(--gris-bg); }
+  tbody td { padding: 8px 12px; color: var(--azul); }
+  tbody td:not(:first-child) { text-align: right; font-family: 'DM Mono', monospace; font-size: 11.5px; }
+  tfoot tr { background: var(--azul-med); color: var(--blanco); }
+  tfoot td { padding: 10px 12px; font-weight: 600; font-family: 'DM Mono', monospace; font-size: 12px; text-align: right; }
+  tfoot td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: .4px; }
+  .doc-footer { background: var(--azul); color: rgba(255,255,255,.45); padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: .8px; }
+  .doc-footer strong { color: var(--acento); }
+  .print-bar { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 32px 0; max-width: 860px; margin: 0 auto; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--radio); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: opacity .15s; }
+  .btn:hover { opacity: .82; }
+  .btn-primary { background: var(--azul); color: var(--blanco); }
+  .btn-outline { background: transparent; color: var(--azul); border: 1px solid var(--gris-borde); }
+  tbody tr.clickable { cursor: pointer; transition: background .15s; }
+  tbody tr.clickable:hover { background: #E8F4FD !important; }
+  tbody tr.clickable td:first-child::after { content: ' ↗'; font-size: 10px; color: var(--acento); opacity: 0; transition: opacity .15s; }
+  tbody tr.clickable:hover td:first-child::after { opacity: 1; }
+  .auditoria-tabla thead tr { background: #164474; }
+  .auditoria-tabla tfoot tr { background: #0A2342; }
+  .diff-ok { color: var(--verde); font-weight: 700; font-family: 'DM Mono', monospace; }
+  .diff-bad { color: var(--rojo); font-weight: 700; font-family: 'DM Mono', monospace; }
+  .audit-row-bad { background: #FEF2F2 !important; }
+  .audit-row-bad td { color: #7F1D1D; }
+  .audit-badge-ok { background:#DCFCE7; color:var(--verde); padding:2px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:.4px; white-space:nowrap; }
+  .audit-badge-bad { background:#FEE2E2; color:var(--rojo); padding:2px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:.4px; white-space:nowrap; }
+  .audit-alert { display: flex; align-items: center; gap: 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--radio); padding: 12px 16px; font-size: 12px; color: #991B1B; }
+  .audit-ok-banner { display: flex; align-items: center; gap: 10px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: var(--radio); padding: 12px 16px; font-size: 12px; color: #166534; }
+  .audit-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 0; }
+  .audit-kpi { border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 12px 10px; text-align: center; }
+  .audit-kpi .kpi-label { font-size: 10px; letter-spacing:1px; text-transform:uppercase; color:var(--gris-texto); font-weight:600; margin-bottom:5px; }
+  .audit-kpi .kpi-value { font-family:'DM Mono',monospace; font-size:16px; font-weight:500; color:var(--azul); }
+  .audit-kpi.desp .kpi-value { color: var(--azul-claro); }
+  .audit-kpi.vend .kpi-value { color: var(--verde); }
+  .audit-kpi.novend .kpi-value { color: #D97706; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,35,66,.55); backdrop-filter: blur(3px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--blanco); border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(10,35,66,.3); overflow: hidden; transform: translateY(16px); transition: transform .2s; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { background: var(--azul); color: var(--blanco); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .modal-header-info { display: flex; align-items: center; gap: 12px; }
+  .modal-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--acento); display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--azul); font-weight: 700; flex-shrink: 0; }
+  .modal-nombre { font-family: 'DM Serif Display', serif; font-size: 16px; }
+  .modal-sub { font-size: 10px; color: var(--acento); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .modal-close { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.1); border: none; color: var(--blanco); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; flex-shrink: 0; }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .modal-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .modal-kpi { background: var(--gris-bg); border-radius: var(--radio); padding: 12px 10px; text-align: center; }
+  .modal-kpi-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gris-texto); font-weight: 600; margin-bottom: 4px; }
+  .modal-kpi-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--azul); }
+  .modal-kpi.total .modal-kpi-val { color: var(--azul-claro); font-size: 15px; }
+  .modal-saldo { display: flex; align-items: center; justify-content: space-between; background: #FFF7ED; border: 1px solid #FED7AA; border-radius: var(--radio); padding: 12px 16px; }
+  .modal-saldo-label { font-size: 11px; font-weight: 600; color: #92400E; }
+  .modal-saldo-val { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: #92400E; }
+  .modal-saldo.sin-dato { background: var(--gris-bg); border-color: var(--gris-borde); }
+  .modal-saldo.sin-dato .modal-saldo-label, .modal-saldo.sin-dato .modal-saldo-val { color: var(--gris-texto); }
+  .estado-vacio { max-width: 860px; margin: 40px auto; text-align: center; color: var(--gris-texto); padding: 40px; }
+  .estado-vacio .ico { font-size: 36px; margin-bottom: 12px; }
+  .estado-vacio h3 { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--azul); margin-bottom: 8px; }
+  @media print {
+    @page { size: A4; margin: 14mm 12mm; }
+    body { background: white; font-size: 11px; }
+    .page-wrapper { box-shadow: none; border-radius: 0; margin: 0; max-width: 100%; display: block !important; }
+    .print-bar, .filtros-bar, .rutas-lista, .seccion-label, #loading { display: none !important; }
+    .header, thead tr, tfoot tr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .kpi-card, .details-grid { break-inside: avoid; }
+  }
+  @media (max-width: 600px) {
+    .cierre-grid { grid-template-columns: repeat(2,1fr); }
+    .details-grid { grid-template-columns: 1fr; }
+    .details-col:first-child { border-right: none; border-bottom: 1px solid var(--gris-borde); }
+    .body-content { padding: 16px; }
+    .header { padding: 16px; }
+    .filtros-bar { padding: 12px 14px; }
+    .print-bar { padding: 12px 14px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo-wrap">
+    <img src="https://drive.google.com/thumbnail?id=1-AjJ5DUWQtqArYaK9aQOxixJwG32frEG&sz=w128" alt="Ribereña" onerror="this.style.display='none'">
+  </div>
+  <p>CARGANDO DATOS...</p>
+</div>
+
+<!-- BARRA DE FILTROS -->
+<div style="max-width:960px;margin:24px auto 0;padding:0 16px;">
+  <div class="filtros-bar">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--acento);"></div>
+      <span style="font-family:'DM Serif Display',serif;font-size:15px;color:var(--azul);">Cierre de Ventas</span>
+    </div>
+    <label>Desde</label>
+    <input type="date" id="fecha-inicio">
+    <span style="color:var(--gris-borde);">—</span>
+    <label>Hasta</label>
+    <input type="date" id="fecha-fin">
+    <button class="btn-cargar" id="btn-cargar" onclick="cargarDatos()">
+      <div class="spinner-sm" id="spinner"></div>
+      <span id="btn-texto">Cargar</span>
+    </button>
+    <a href="reporte_inventario_rutas.html" class="nav-link">📦 Inventario</a>
+    <a href="reporte_regalias.html" class="nav-link">🎁 Regalías</a>
+  </div>
+</div>
+
+<div id="error-container" style="max-width:960px;margin:0 auto;padding:0 16px;"></div>
+
+<!-- LISTA DE RUTAS -->
+<div style="max-width:960px;margin:0 auto;padding:0 16px;" id="lista-wrap" style="display:none;">
+  <div class="seccion-label" id="lista-label"></div>
+  <div class="rutas-lista" id="rutas-lista"></div>
+</div>
+
+<!-- PRINT BAR -->
+<div class="print-bar" id="print-bar" style="display:none;">
+  <button class="btn btn-outline" onclick="compartirWhatsApp()">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    WhatsApp
+  </button>
+  <button class="btn btn-primary" onclick="window.print()">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Guardar / Imprimir PDF
+  </button>
+</div>
+
+<!-- REPORTE (mismo HTML que el original) -->
+<div class="page-wrapper" id="reporte" style="margin-top:16px;">
+  <div class="header">
+    <div class="header-logo">
+      <div class="logo-img-wrap">
+        <img src="https://drive.google.com/thumbnail?id=1-AjJ5DUWQtqArYaK9aQOxixJwG32frEG&sz=w128" alt="Ribereña" onerror="this.parentElement.innerHTML='<span style=\'font-family:DM Serif Display,serif;font-size:22px;color:#00B4D8\'>R</span>'">
+      </div>
+      <div>
+        <div class="header-sub">Distribución</div>
+        <h1>Reporte de Ventas</h1>
+      </div>
+    </div>
+    <div class="header-badge">ID RUTA<span id="id-ruta">—</span></div>
+  </div>
+
+  <div class="body-content">
+    <div>
+      <div class="section-title">Detalles Ruta de Ventas</div>
+      <div class="details-grid">
+        <div class="details-col">
+          <div class="details-col-header">Información General</div>
+          <div class="detail-row"><span class="detail-label">Fecha:</span><span class="detail-value" id="d-fecha">—</span></div>
+          <div class="detail-row"><span class="detail-label">Despacho:</span><span class="detail-value" id="d-despacho">—</span></div>
+          <div class="detail-row"><span class="detail-label">Hora Inicio:</span><span class="detail-value mono" id="d-hora-inicio">—</span></div>
+          <div class="detail-row"><span class="detail-label">Hora Finalización:</span><span class="detail-value mono" id="d-hora-fin">—</span></div>
+          <div class="detail-row"><span class="detail-label">Responsable:</span><span class="detail-value" id="d-responsable">—</span></div>
+          <div class="detail-row"><span class="detail-label">Estatus:</span><span class="badge-estatus" id="d-estatus">—</span></div>
+        </div>
+        <div class="details-col">
+          <div class="details-col-header">Resumen Ejecutivo</div>
+          <div class="detail-row"><span class="detail-label">Total Clientes:</span><span class="detail-value mono" id="d-clientes">—</span></div>
+          <div class="detail-row"><span class="detail-label">Total Venta:</span><span class="detail-value mono" id="d-total-venta">—</span></div>
+          <div class="detail-row"><span class="detail-label">Total Efectivo:</span><span class="detail-value mono" id="d-total-efectivo">—</span></div>
+          <div class="detail-row"><span class="detail-label">Total Lts Vendidos:</span><span class="detail-value mono" id="d-total-lts">—</span></div>
+          <div class="detail-row"><span class="detail-label">Total Productos:</span><span class="detail-value mono" id="d-total-prod">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Detalle de Cierre</div>
+      <div class="cierre-grid">
+        <div class="kpi-card credito"><div class="kpi-label">Total Crédito</div><div class="kpi-value" id="k-credito">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Transferencia</div><div class="kpi-value" id="k-transf">—</div></div>
+        <div class="kpi-card deposito"><div class="kpi-label">Total Depósito</div><div class="kpi-value" id="k-dep">—</div></div>
+        <div class="kpi-card egresos"><div class="kpi-label">Total Egresos</div><div class="kpi-value" id="k-egr">—</div></div>
+        <div class="kpi-card balance"><div class="kpi-label">Balance Cierre</div><div class="kpi-value" id="k-balance">—</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Resumen de Productos Vendidos</div>
+      <table>
+        <thead><tr><th>Producto</th><th>Presentación</th><th>Precio</th><th>Can. Presentación</th><th>Cantidad</th></tr></thead>
+        <tbody id="tabla-productos"></tbody>
+        <tfoot><tr><td colspan="4">Total Unidades</td><td id="total-unidades">0</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div>
+      <div class="section-title">Resumen de Clientes Atendidos</div>
+      <table>
+        <thead><tr><th>Cliente</th><th style="text-align:center">Tipo de Venta</th><th>Efectivo</th><th>Transferencia</th><th>Total Venta</th><th style="text-align:center;width:36px"></th></tr></thead>
+        <tbody id="tabla-clientes"></tbody>
+        <tfoot><tr><td colspan="2">Total</td><td id="sum-efectivo">L. 0.00</td><td id="sum-transf">L. 0.00</td><td id="sum-venta">L. 0.00</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div id="seccion-auditoria" style="display:none;">
+      <div class="section-title">Auditoría de Inventario</div>
+      <div class="audit-kpis" style="margin-bottom:14px;">
+        <div class="audit-kpi desp"><div class="kpi-label">Total Despachado</div><div class="kpi-value" id="aud-total-desp">—</div></div>
+        <div class="audit-kpi vend"><div class="kpi-label">Total Vendido</div><div class="kpi-value" id="aud-total-vend">—</div></div>
+        <div class="audit-kpi novend"><div class="kpi-label">Total No Vendido</div><div class="kpi-value" id="aud-total-nv">—</div></div>
+      </div>
+      <div id="aud-banner" style="margin-bottom:12px;"></div>
+      <table class="auditoria-tabla">
+        <thead><tr><th>Producto</th><th>Despachado</th><th>Vendido</th><th>No Vendido</th><th>Diferencia</th><th style="text-align:center">Estado</th></tr></thead>
+        <tbody id="tabla-auditoria"></tbody>
+        <tfoot><tr><td>Totales</td><td id="aud-f-desp">0</td><td id="aud-f-vend">0</td><td id="aud-f-nv">0</td><td id="aud-f-diff">0</td><td></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <span>Generado el <strong id="fecha-gen">—</strong></span>
+    <span>Ribereña Distribución · Sistema de Gestión de Rutas</span>
+    <span>v2.0</span>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-avatar" id="m-avatar">?</div>
+        <div>
+          <div class="modal-nombre" id="m-nombre">—</div>
+          <div class="modal-sub" id="m-tipo-badge"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open');document.body.style.overflow='';">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-kpis">
+        <div class="modal-kpi"><div class="modal-kpi-label">Efectivo</div><div class="modal-kpi-val" id="m-efectivo">—</div></div>
+        <div class="modal-kpi"><div class="modal-kpi-label">Transferencia</div><div class="modal-kpi-val" id="m-transferencia">—</div></div>
+        <div class="modal-kpi total"><div class="modal-kpi-label">Total Venta</div><div class="modal-kpi-val" id="m-totalventa">—</div></div>
+      </div>
+      <div class="modal-saldo" id="m-saldo-wrap">
+        <span class="modal-saldo-label">💳 Saldo Crédito</span>
+        <span class="modal-saldo-val" id="m-saldo">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── FUENTES ──────────────────────────────────────────────────────────────────
+const SHEETS = {
+  merRuta:         'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=0&single=true&output=csv',
+  otProducto:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=392195505&single=true&output=csv',
+  gecCierres:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vSHCP8OtkOO0ea7lqFZeT8ttCHcESZGuQ2dhLgphEglvbA27-VvH3LVCzLMR2C2VuRGTOGulQ4i61Af/pub?gid=0&single=true&output=csv',
+  despachoDetalle: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWTHaP6fZIDbxalv-CZvOUZvDtuxm70JFhpvXbei3fd3C0cjJn3tNLNt5kIrEJP8oO8lt_WXo2G61S/pub?gid=1458495664&single=true&output=csv',
+  noVendido:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWTHaP6fZIDbxalv-CZvOUZvDtuxm70JFhpvXbei3fd3C0cjJn3tNLNt5kIrEJP8oO8lt_WXo2G61S/pub?gid=1322407571&single=true&output=csv'
+};
+
+// ── UTILIDADES ───────────────────────────────────────────────────────────────
+function parseCSVLine(line) {
+  const r=[]; let c='', inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'&&!inQ){inQ=true;}
+    else if(ch==='"'&&inQ){inQ=false;}
+    else if(ch===','&&!inQ){r.push(c.trim());c='';}
+    else{c+=ch;}
+  }
+  r.push(c.trim()); return r;
+}
+function parseCSV(text) {
+  const lines=text.trim().split('\n');
+  if(lines.length<2) return [];
+  const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line=>{
+    const vals=parseCSVLine(line);
+    const obj={};
+    headers.forEach((h,i)=>{ obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,''); });
+    return obj;
+  }).filter(r=>Object.values(r).some(v=>v!==''));
+}
+async function fetchCSV(url) {
+  const r=await fetch(url);
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return parseCSV(await r.text());
+}
+function normFecha(f) {
+  if(!f) return '';
+  f=f.trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(f)) return f.substring(0,10);
+  const p=f.split(/[\/\-]/);
+  if(p.length===3){
+    if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  }
+  return f;
+}
+function enRango(f,d,h){ const n=normFecha(f); return n>=d&&n<=h; }
+function hoy(){ return new Date().toISOString().split('T')[0]; }
+const cleanNum = v => parseFloat(String(v).replace(/,/g,''))||0;
+const L = v => { const n=cleanNum(v); return 'L. '+n.toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+const U = v => { const n=cleanNum(v); return n.toLocaleString('es-HN'); };
+function fechaGen(){ const n=new Date(); return n.toLocaleDateString('es-HN',{day:'2-digit',month:'long',year:'numeric'})+' '+n.toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'}); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── ESTADO GLOBAL ────────────────────────────────────────────────────────────
+let _rutas=[], _otRows=[], _despRows=[], _nvRows=[], _cierresRows=[];
+let _rutaActiva=null;
+
+// ── CARGA PRINCIPAL ──────────────────────────────────────────────────────────
+async function cargarDatos() {
+  const desde=document.getElementById('fecha-inicio').value;
+  const hasta=document.getElementById('fecha-fin').value;
+  if(!desde||!hasta){mostrarError('Selecciona un rango de fechas.');return;}
+  if(desde>hasta){mostrarError('Fecha inicio debe ser anterior a la fecha final.');return;}
+  setLoading(true); limpiarError();
+  ocultarReporte();
+
+  try {
+    const [rutaRows,otRows,cierresRows,despRows,nvRows]=await Promise.all([
+      fetchCSV(SHEETS.merRuta),
+      fetchCSV(SHEETS.otProducto),
+      fetchCSV(SHEETS.gecCierres),
+      fetchCSV(SHEETS.despachoDetalle),
+      fetchCSV(SHEETS.noVendido)
+    ]);
+
+    _otRows=otRows; _despRows=despRows; _nvRows=nvRows; _cierresRows=cierresRows;
+
+    _rutas=rutaRows.filter(r=>
+      enRango(r['Fecha'],desde,hasta)&&
+      r['ELIMINADO']!=='Y'&&
+      r['RUTA']&&r['RUTA']!==''
+    ).sort((a,b)=>{
+      const fd=normFecha(b['Fecha'])-normFecha(a['Fecha']);
+      if(normFecha(b['Fecha'])>normFecha(a['Fecha'])) return 1;
+      if(normFecha(b['Fecha'])<normFecha(a['Fecha'])) return -1;
+      return 0;
+    });
+
+    if(_rutas.length===0){
+      mostrarError('No se encontraron rutas en el período seleccionado.');
+      setLoading(false); return;
+    }
+
+    renderListaRutas();
+
+    // Si solo hay una ruta, cargarla automáticamente
+    if(_rutas.length===1) renderRuta(_rutas[0]);
+
+  } catch(e) {
+    mostrarError('Error al cargar datos: '+e.message);
+  }
+  setLoading(false);
+}
+
+// ── LISTA DE RUTAS ───────────────────────────────────────────────────────────
+function renderListaRutas() {
+  const wrap=document.getElementById('lista-wrap');
+  const label=document.getElementById('lista-label');
+  const lista=document.getElementById('rutas-lista');
+  label.textContent=`${_rutas.length} ruta${_rutas.length!==1?'s':''} encontrada${_rutas.length!==1?'s':''}`;
+  lista.innerHTML='';
+  _rutas.forEach((r,i)=>{
+    const est=(r['Estatus']||'').toUpperCase();
+    const estCls=est==='CERRADO'||est==='CLOSED'?'cerrado':'otro';
+    const pill=document.createElement('div');
+    pill.className='ruta-pill';
+    pill.id='pill-'+i;
+    pill.innerHTML=`
+      <span class="rp-id">${esc(r['RUTA'])}</span>
+      <span class="rp-fecha">${esc(r['Fecha'])}</span>
+      <span class="rp-resp">${esc(r['Responsable']||'')}</span>
+      <span class="rp-venta">${L(r['Total Venta']||0)}</span>
+      <span class="rp-est ${estCls}">${esc(r['Estatus']||'—')}</span>
+    `;
+    pill.onclick=()=>{ renderRuta(r,i); };
+    lista.appendChild(pill);
+  });
+  wrap.style.display='block';
+}
+
+// ── RENDER REPORTE ───────────────────────────────────────────────────────────
+function renderRuta(r, idx) {
+  // Marcar pill activo
+  document.querySelectorAll('.ruta-pill').forEach(p=>p.classList.remove('active'));
+  if(idx!==undefined) document.getElementById('pill-'+idx).classList.add('active');
+  _rutaActiva=r;
+
+  // Campos básicos de MER_RUTA
+  document.getElementById('id-ruta').textContent        = r['RUTA']||'—';
+  document.getElementById('d-fecha').textContent        = r['Fecha']||'—';
+  document.getElementById('d-despacho').textContent     = r['Despacho']||'—';
+  document.getElementById('d-hora-inicio').textContent  = r['Hora de Inicio']||'—';
+  document.getElementById('d-hora-fin').textContent     = r['Hora de Finalizacion']||'—';
+  document.getElementById('d-responsable').textContent  = r['Responsable']||'—';
+  document.getElementById('d-estatus').textContent      = r['Estatus']||'—';
+  document.getElementById('d-clientes').textContent     = U(r['Total Clientes']||0);
+  document.getElementById('d-total-venta').textContent  = L(r['Total Venta']||0);
+  document.getElementById('d-total-efectivo').textContent= L(r['Total Efectivo']||0);
+  document.getElementById('d-total-lts').textContent    = U(r['Total Lts Vendidos']||0)+' Lts';
+  document.getElementById('d-total-prod').textContent   = U(r['Total Productos']||0);
+
+  // Buscar cierre en GEC_CIERRES por ruta
+  const cierre=_cierresRows.find(c=>c['Ruta']===r['RUTA']||c['ID_RUTA']===r['RUTA']||c['RUTA']===r['RUTA']);
+  document.getElementById('k-credito').textContent  = L(r['Total Venta Credito']||cierre?.['Total Credito']||0);
+  document.getElementById('k-transf').textContent   = L(r['Total Transferencia']||cierre?.['Total Transferencia']||0);
+  document.getElementById('k-dep').textContent      = L(cierre?.['Total Deposito']||cierre?.['Total Depositos']||r['Total Transferencia']||0);
+  document.getElementById('k-egr').textContent      = L(cierre?.['Total Egresos']||0);
+  document.getElementById('k-balance').textContent  = L(cierre?.['Balance Cierre']||cierre?.['Balance']||r['Total Recibido']||0);
+
+  // PRODUCTOS — desde MER_RUTA_OT_PRODUCTO filtrado por Ruta y fecha
+  const rutaId=r['RUTA'];
+  const fechaNorm=normFecha(r['Fecha']);
+  const otFiltrado=_otRows.filter(o=>
+    o['ELIMINADO']!=='Y'&&
+    o['Ruta']===rutaId&&
+    normFecha(o['Fecha'])===fechaNorm
+  );
+
+  // Agrupar por producto+presentacion+precio
+  const prodMap={};
+  otFiltrado.forEach(o=>{
+    const key=`${o['Producto']}||${o['Presentacion']}||${o['Precio']}`;
+    if(!prodMap[key]) prodMap[key]={producto:o['Producto'],presentacion:o['Des. Presentacion']||o['Presentacion'],precio:cleanNum(o['Precio']),canPres:cleanNum(o['Can. Presentacion']),cantidad:0};
+    prodMap[key].cantidad+=cleanNum(o['Cantidad']);
+  });
+
+  const tbP=document.getElementById('tabla-productos');
+  tbP.innerHTML='';
+  let totU=0;
+  Object.values(prodMap).forEach(p=>{
+    totU+=p.cantidad;
+    tbP.innerHTML+=`<tr>
+      <td>${esc(p.producto)}</td>
+      <td style="text-align:left">${esc(p.presentacion)}</td>
+      <td>${L(p.precio)}</td>
+      <td>${U(p.canPres)}</td>
+      <td>${U(p.cantidad)}</td>
+    </tr>`;
+  });
+  document.getElementById('total-unidades').textContent=U(totU);
+
+  // CLIENTES — agrupar ventas por cliente desde OT
+  const cliMap={};
+  otFiltrado.forEach(o=>{
+    const nombre=o['Des. Cliente']||o['Cliente']||'Sin nombre';
+    if(!cliMap[nombre]) cliMap[nombre]={cliente:nombre,tipoVenta:'Contado',efectivo:0,transferencia:0,totalVenta:0,saldoCredito:0};
+    cliMap[nombre].totalVenta+=cleanNum(o['Sub Total']);
+    // tipo de venta — si tiene precio 0 podría ser crédito; por ahora deducimos de los datos disponibles
+  });
+
+  const tbC=document.getElementById('tabla-clientes');
+  tbC.innerHTML='';
+  let sE=0,sT=0,sV=0;
+  Object.values(cliMap).forEach((row,idx)=>{
+    sV+=row.totalVenta;
+    const tipo=(row.tipoVenta||'').toUpperCase();
+    const tipoBadge=tipo==='CREDITO'||tipo==='CRÉDITO'
+      ?'<span style="background:#FEE2E2;color:#DC2626;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap">CRÉDITO</span>'
+      :'<span style="background:#DCFCE7;color:#059669;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap">CONTADO</span>';
+    const tr=document.createElement('tr');
+    tr.className='clickable';
+    tr.innerHTML=`<td>${esc(row.cliente)}</td><td style="text-align:center">${tipoBadge}</td><td>${L(row.efectivo)}</td><td>${L(row.transferencia)}</td><td>${L(row.totalVenta)}</td><td style="text-align:center;color:var(--acento);font-size:14px">›</td>`;
+    tr.addEventListener('click',()=>abrirModal(row));
+    tbC.appendChild(tr);
+  });
+  document.getElementById('sum-efectivo').textContent=L(sE);
+  document.getElementById('sum-transf').textContent=L(sT);
+  document.getElementById('sum-venta').textContent=L(sV);
+
+  // AUDITORÍA — ID_OP desde MER_RUTA.Despacho
+  const idOps=(r['Despacho']||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const despFiltrado=_despRows.filter(d=>d['ELIMINADO']!=='Y'&&idOps.includes(d['ID_OP']));
+  const nvFiltrado=_nvRows.filter(d=>d['ELIMINADO']!=='Y'&&idOps.includes(d['ID_OP']));
+
+  if(despFiltrado.length>0){
+    document.getElementById('seccion-auditoria').style.display='block';
+    const vendMap={};
+    Object.values(prodMap).forEach(p=>{ vendMap[p.producto]=(vendMap[p.producto]||0)+p.cantidad; });
+    const despMap={};
+    despFiltrado.forEach(d=>{ despMap[d['Producto']]=(despMap[d['Producto']]||0)+cleanNum(d['Cantidad']); });
+    const nvMap={};
+    nvFiltrado.forEach(d=>{ nvMap[d['Producto']]=(nvMap[d['Producto']]||0)+cleanNum(d['Cantidad']); });
+    const allProds=[...new Set([...Object.keys(despMap),...Object.keys(nvMap)])];
+    const tbA=document.getElementById('tabla-auditoria');
+    tbA.innerHTML='';
+    let totD=0,totV=0,totN=0,totDiff=0;
+    allProds.forEach(prod=>{
+      const desp=despMap[prod]||0, nv=nvMap[prod]||0, vend=vendMap[prod]||0, diff=desp-vend-nv;
+      totD+=desp; totV+=vend; totN+=nv; totDiff+=diff;
+      const tr=document.createElement('tr');
+      if(diff!==0) tr.classList.add('audit-row-bad');
+      tr.innerHTML=`<td style="font-weight:500">${esc(prod)}</td><td>${desp}</td><td>${vend}</td><td>${nv}</td><td class="${diff===0?'diff-ok':'diff-bad'}">${diff===0?'0':diff>0?'-'+diff:'+'+Math.abs(diff)}</td><td style="text-align:center">${diff===0?'<span class="audit-badge-ok">✓ OK</span>':'<span class="audit-badge-bad">⚠ FALTA</span>'}</td>`;
+      tbA.appendChild(tr);
+    });
+    document.getElementById('aud-total-desp').textContent=totD;
+    document.getElementById('aud-total-vend').textContent=totV;
+    document.getElementById('aud-total-nv').textContent=totN;
+    document.getElementById('aud-f-desp').textContent=totD;
+    document.getElementById('aud-f-vend').textContent=totV;
+    document.getElementById('aud-f-nv').textContent=totN;
+    document.getElementById('aud-f-diff').textContent=totDiff===0?'0':totDiff>0?'-'+totDiff:'+'+Math.abs(totDiff);
+    const banner=document.getElementById('aud-banner');
+    if(totDiff===0){
+      banner.innerHTML='<div class="audit-ok-banner"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><strong>Todo cuadra.</strong> El total despachado coincide con vendido + no vendido.</span></div>';
+    } else {
+      const abs=Math.abs(totDiff);
+      const msg=totDiff>0?`Faltan rendir <strong>${abs}</strong> unidad${abs>1?'es':''}.`:`Exceso de <strong>${abs}</strong> unidad${abs>1?'es':''} reportadas.`;
+      banner.innerHTML=`<div class="audit-alert"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>${msg}</span></div>`;
+    }
+  } else {
+    document.getElementById('seccion-auditoria').style.display='none';
+  }
+
+  document.getElementById('fecha-gen').textContent=fechaGen();
+  document.getElementById('reporte').style.display='block';
+  document.getElementById('print-bar').style.display='flex';
+  document.getElementById('reporte').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── MODAL CLIENTE ────────────────────────────────────────────────────────────
+function abrirModal(row) {
+  const nombre=row.cliente||'Sin nombre';
+  document.getElementById('m-avatar').textContent=nombre.trim().charAt(0).toUpperCase()||'?';
+  document.getElementById('m-nombre').textContent=nombre;
+  const tipo=(row.tipoVenta||'').toUpperCase();
+  const badge=tipo==='CREDITO'||tipo==='CRÉDITO'
+    ?'<span style="background:rgba(220,38,38,.2);color:#FCA5A5;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.6px">CRÉDITO</span>'
+    :'<span style="background:rgba(5,150,105,.2);color:#6EE7B7;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.6px">CONTADO</span>';
+  document.getElementById('m-tipo-badge').innerHTML=badge;
+  document.getElementById('m-efectivo').textContent=L(row.efectivo);
+  document.getElementById('m-transferencia').textContent=L(row.transferencia);
+  document.getElementById('m-totalventa').textContent=L(row.totalVenta);
+  const sw=document.getElementById('m-saldo-wrap');
+  const se=document.getElementById('m-saldo');
+  if(row.saldoCredito){se.textContent=L(row.saldoCredito);sw.className='modal-saldo';}
+  else{se.textContent='No disponible';sw.className='modal-saldo sin-dato';}
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarModal(e){
+  if(e.target===document.getElementById('modal-overlay')){
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+}
+
+// ── WHATSAPP ─────────────────────────────────────────────────────────────────
+function compartirWhatsApp() {
+  const g=id=>document.getElementById(id).textContent;
+  const audSection=document.getElementById('aud-banner');
+  let audMsg='';
+  if(audSection&&g('aud-f-desp')!=='0'&&g('aud-f-desp')!=='—'){
+    const diff=g('aud-f-diff');
+    audMsg=`─────────────────────\n*Auditoría de Inventario*\nDespachado: ${g('aud-f-desp')} und\nVendido: ${g('aud-f-vend')} und\nNo Vendido: ${g('aud-f-nv')} und\nDiferencia: ${diff==='0'?'✓ Todo cuadra':'⚠ '+diff+' unidades'}\n`;
+  }
+  const msg=`*Reporte de Ventas — ${g('id-ruta')}*\nFecha: ${g('d-fecha')} | ${g('d-responsable')}\n─────────────────────\nClientes: ${g('d-clientes')}\nTotal Venta: ${g('d-total-venta')}\nEfectivo: ${g('d-total-efectivo')}\nTransferencia: ${g('k-transf')}\nCrédito: ${g('k-credito')}\nDepósito: ${g('k-dep')}\nEgresos: ${g('k-egr')}\nBalance: ${g('k-balance')}\n${audMsg}─────────────────────\nSistema Ribereña Distribución`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ── HELPERS UI ───────────────────────────────────────────────────────────────
+function setLoading(v){
+  document.getElementById('spinner').style.display=v?'block':'none';
+  document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar';
+  document.getElementById('btn-cargar').disabled=v;
+  if(v){
+    document.getElementById('loading').style.display='flex';
+    document.getElementById('loading').style.opacity='1';
+  } else {
+    document.getElementById('loading').style.opacity='0';
+    setTimeout(()=>document.getElementById('loading').style.display='none',400);
+  }
+}
+function ocultarReporte(){
+  document.getElementById('reporte').style.display='none';
+  document.getElementById('print-bar').style.display='none';
+  document.getElementById('lista-wrap').style.display='none';
+}
+function mostrarError(msg){
+  document.getElementById('error-container').innerHTML=`<div class="error-bar">⚠ ${msg}</div>`;
+}
+function limpiarError(){ document.getElementById('error-container').innerHTML=''; }
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(function init(){
+  const h=hoy();
+  document.getElementById('fecha-inicio').value=h;
+  document.getElementById('fecha-fin').value=h;
+  // Ocultar loading inicial
+  document.getElementById('loading').style.opacity='0';
+  setTimeout(()=>document.getElementById('loading').style.display='none',400);
+})();
+</script>
+</body>
+</html>
