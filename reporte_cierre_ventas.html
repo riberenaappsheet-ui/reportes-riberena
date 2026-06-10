@@ -111,13 +111,14 @@
   }
 
   /* ── KPIs CIERRE ── */
-  .cierre-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+  .cierre-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
   .kpi-card { border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 14px 14px; text-align: center; }
   .kpi-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gris-texto); font-weight: 600; margin-bottom: 6px; }
   .kpi-value { font-family: 'DM Mono', monospace; font-size: 17px; font-weight: 500; color: var(--azul); }
   .kpi-card.balance .kpi-value { color: var(--verde); }
   .kpi-card.egresos .kpi-value  { color: var(--rojo); }
   .kpi-card.deposito .kpi-value { color: var(--azul-claro); }
+  .kpi-card.credito .kpi-value  { color: #D97706; }
 
   /* ── SECTION TITLE ── */
   .section-title {
@@ -335,7 +336,7 @@
     <strong>Parámetros disponibles:</strong><br>
     <code>idRuta · fecha · despacho · horaInicio · horaFin · responsable · estatus</code><br>
     <code>totalClientes · totalVenta · totalEfectivo · totalLts · totalProductos</code><br>
-    <code>totalTransferencia · totalDeposito · totalEgresos · balanceCierre</code><br>
+    <code>totalTransferencia · totalCredito · totalDeposito · totalEgresos · balanceCierre</code><br>
     <code>productos</code> → JSON: <code>[{"producto":"...","presentacion":"...","precio":0,"canPres":0,"cantidad":0}]</code><br>
     <code>clientes</code>  → JSON: <code>[{"cliente":"...","efectivo":0,"transferencia":0,"totalVenta":0}]</code><br>
     <strong>Auditoría de inventario:</strong><br>
@@ -405,6 +406,7 @@
     <div>
       <div class="section-title">Detalle de Cierre</div>
       <div class="cierre-grid">
+        <div class="kpi-card credito"><div class="kpi-label">Total Crédito</div><div class="kpi-value" id="k-credito">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Total Transferencia</div><div class="kpi-value" id="k-transf">—</div></div>
         <div class="kpi-card deposito"><div class="kpi-label">Total Depósito</div><div class="kpi-value" id="k-dep">—</div></div>
         <div class="kpi-card egresos"><div class="kpi-label">Total Egresos</div><div class="kpi-value" id="k-egr">—</div></div>
@@ -561,6 +563,7 @@ function buildUrlEjemplo() {
     + "&totalLts=<<[Total Lts Vendidos]>>"
     + "&totalProductos=<<[Total Productos]>>"
     + "&totalTransferencia=<<[Total Transferencias]>>"
+    + "&totalCredito=<<[Total Credito]>>"
     + "&totalDeposito=<<[Total Deposito]>>"
     + "&totalEgresos=<<[Total Egresos]>>"
     + "&balanceCierre=<<[Balance Cierrre]>>"
@@ -595,6 +598,7 @@ function render() {
     totalDeposito:      p("totalDeposito",      "8200"),
     totalEgresos:       p("totalEgresos",       "350"),
     balanceCierre:      p("balanceCierre",      "12100"),
+    totalCredito:       p("totalCredito",       "0"),
     productos: parseJSON(p("productos", JSON.stringify([
       {"p":"Botellón 20L",  "pr":"UNIDAD",        "pc":45, "cp":6,  "c":6},
       {"p":"Botellón 20L",  "pr":"UNIDAD",        "pc":50, "cp":2,  "c":2},
@@ -648,7 +652,8 @@ function render() {
   document.getElementById("d-total-efectivo").textContent= L(D.totalEfectivo);
   document.getElementById("d-total-lts").textContent     = Math.round(cleanNum(D.totalLts)).toLocaleString("es-HN") + " Lts";
   document.getElementById("d-total-prod").textContent    = Math.round(cleanNum(D.totalProductos)).toLocaleString("es-HN");
-  document.getElementById("k-transf").textContent  = L(D.totalTransferencia);
+  document.getElementById("k-transf").textContent   = L(D.totalTransferencia);
+  document.getElementById("k-credito").textContent  = L(D.totalCredito);
   document.getElementById("k-dep").textContent      = L(D.totalDeposito);
   document.getElementById("k-egr").textContent      = L(D.totalEgresos);
   document.getElementById("k-balance").textContent  = L(D.balanceCierre);
@@ -816,6 +821,7 @@ function compartirWhatsApp() {
     `Total Venta:        ${get("d-total-venta")}\n` +
     `Efectivo:           ${get("d-total-efectivo")}\n` +
     `Transferencia:      ${get("k-transf")}\n` +
+    `Crédito:            ${get("k-credito")}\n` +
     `Depósito:           ${get("k-dep")}\n` +
     `Egresos:            ${get("k-egr")}\n` +
     `Balance Cierre:     ${get("k-balance")}\n` +
