@@ -514,13 +514,14 @@ function renderRuta(r, idx) {
   document.getElementById('d-total-lts').textContent    = U(r['Total Lts Vendidos']||0)+' Lts';
   document.getElementById('d-total-prod').textContent   = U(r['Total Productos']||0);
 
-  // Buscar cierre en GEC_CIERRES por ruta
-  const cierre=_cierresRows.find(c=>c['Ruta']===r['RUTA']||c['ID_RUTA']===r['RUTA']||c['RUTA']===r['RUTA']);
-  document.getElementById('k-credito').textContent  = L(r['Total Venta Credito']||cierre?.['Total Credito']||0);
-  document.getElementById('k-transf').textContent   = L(r['Total Transferencia']||cierre?.['Total Transferencia']||0);
-  document.getElementById('k-dep').textContent      = L(cierre?.['Total Deposito']||cierre?.['Total Depositos']||r['Total Transferencia']||0);
+  // Buscar cierre en GEC_CIERRES — join por todas las variantes del campo ruta
+  const cierre=_cierresRows.find(cx=>cx['IDRUTA']===r['RUTA']);
+  // Columnas exactas GEC_CIERRES: P=Total Credito, L=Total Transferencias, M=Total Deposito, N=Total Egresos, O=Balance Cierrre
+  document.getElementById('k-credito').textContent  = L(cierre?.['Total Credito']||r['Total Venta Credito']||0);
+  document.getElementById('k-transf').textContent   = L(cierre?.['Total Transferencias']||r['Total Transferencia']||0);
+  document.getElementById('k-dep').textContent      = L(cierre?.['Total Deposito']||0);
   document.getElementById('k-egr').textContent      = L(cierre?.['Total Egresos']||0);
-  document.getElementById('k-balance').textContent  = L(cierre?.['Balance Cierre']||cierre?.['Balance']||r['Total Recibido']||0);
+  document.getElementById('k-balance').textContent  = L(cierre?.['Balance Cierrre']||cierre?.['Balance Cierre']||r['Total Recibido']||0);
 
   // PRODUCTOS — desde MER_RUTA_OT_PRODUCTO filtrado por Ruta y fecha
   const rutaId=r['RUTA'];
