@@ -12,91 +12,119 @@
     --gris: #5F5E5A; --gris-claro: #F1EFE8; --borde: #D3D1C7;
     --texto: #2C2C2A; --texto-sec: #888780; --blanco: #ffffff;
     --rojo: #E24B4A; --rojo-bg: #FCEBEB; --rojo-text: #501313;
+    --selected-bg: #FAEEDA;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F7F4; color: var(--texto); font-size: 14px; min-height: 100vh; }
 
-  .header { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  /* HEADER */
+  .header { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; }
   .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); display: inline-block; }
   .h-title { font-size: 16px; font-weight: 600; }
   .h-sub { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
-  .nav-link { font-size: 12px; font-weight: 500; color: var(--verde-text); text-decoration: none; border: 1px solid var(--verde-bg); background: var(--verde-bg); padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+  .nav-link { font-size: 12px; font-weight: 500; color: var(--verde-text); text-decoration: none; background: var(--verde-bg); padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
   .nav-link:hover { background: #9FE1CB; }
 
-  .filtros { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  /* FILTROS */
+  .filtros { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 10px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .filtros label { font-size: 12px; color: var(--texto-sec); font-weight: 500; }
   .filtros input[type="date"] { border: 1px solid var(--borde); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--texto); background: var(--blanco); outline: none; }
   .filtros input[type="date"]:focus { border-color: var(--amber); }
-  .btn { background: var(--amber); color: white; border: none; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .btn { background: var(--amber); color: white; border: none; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
   .btn:hover { background: #854F0B; }
   .btn:disabled { background: var(--borde); cursor: not-allowed; }
   .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 20px 24px 0; }
-  .card-stat { background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 14px 16px; text-align: center; }
-  .card-stat .num { font-size: 26px; font-weight: 700; margin-bottom: 3px; }
+  /* RESUMEN CARDS */
+  .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; padding: 16px 24px 0; }
+  .card-stat { background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 12px 14px; text-align: center; }
+  .card-stat .num { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
   .card-stat .lbl { font-size: 11px; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; }
   .card-stat.amber .num { color: var(--amber); }
   .card-stat.gris .num { color: var(--gris); }
 
-  .main { padding: 20px 24px; }
+  /* GRÁFICO */
+  .grafico-wrap { margin: 16px 24px 0; background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 16px 20px; }
+  .grafico-titulo { font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding-bottom: 24px; position: relative; }
+  .chart-bar-wrap { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; height: 100%; justify-content: flex-end; position: relative; }
+  .chart-bar { width: 100%; background: var(--amber); border-radius: 3px 3px 0 0; transition: height 0.4s ease; min-height: 2px; cursor: pointer; position: relative; }
+  .chart-bar:hover { background: #854F0B; }
+  .chart-bar-val { font-size: 10px; font-weight: 600; color: var(--amber-text); text-align: center; margin-bottom: 3px; }
+  .chart-bar-lbl { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--texto-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; text-align: center; }
+  .chart-baseline { position: absolute; bottom: 24px; left: 0; right: 0; height: 1px; background: var(--borde); }
 
-  /* TARJETAS DE RUTA */
-  .rutas-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-  .ruta-card { background: var(--blanco); border: 1px solid var(--borde); border-left: 4px solid var(--amber); border-radius: 10px; overflow: hidden; }
-  .ruta-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; flex-wrap: wrap; }
-  .ruta-header:hover { background: var(--gris-claro); }
-  .ruta-nombre { font-weight: 600; font-size: 14px; }
-  .ruta-responsable { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
-  .ruta-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .badge-amber { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--amber-bg); color: var(--amber-text); white-space: nowrap; }
-  .chevron { font-size: 14px; color: var(--texto-sec); transition: transform 0.2s; }
-  .ruta-card.open .chevron { transform: rotate(180deg); }
+  /* LAYOUT PRINCIPAL dos columnas */
+  .layout { display: grid; grid-template-columns: 280px 1fr; gap: 0; margin: 16px 24px; background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; min-height: 400px; }
 
-  .ruta-detalle { display: none; border-top: 1px solid var(--borde); }
-  .ruta-card.open .ruta-detalle { display: block; }
+  /* COLUMNA IZQUIERDA — árbol ruta/cliente */
+  .col-izq { border-right: 1px solid var(--borde); overflow-y: auto; max-height: 600px; }
+  .col-izq-header { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; background: var(--gris-claro); border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; }
+  .btn-clear { font-size: 10px; background: none; border: none; color: var(--amber); cursor: pointer; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+  .btn-clear:hover { background: var(--amber-bg); }
 
-  /* TABLA DE CLIENTES */
-  .cliente-section { border-bottom: 1px solid var(--gris-claro); }
-  .cliente-section:last-child { border-bottom: none; }
-  .cliente-header { padding: 10px 16px; background: #FAFAF8; display: flex; align-items: center; gap: 10px; }
-  .cliente-nombre { font-size: 13px; font-weight: 600; color: var(--texto); }
-  .cliente-ubicacion { font-size: 11px; color: var(--texto-sec); }
-  .badge-cant { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--amber-bg); color: var(--amber-text); }
+  /* Nodo ruta */
+  .ruta-node { border-bottom: 1px solid var(--gris-claro); }
+  .ruta-node-header { padding: 9px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .ruta-node-header:hover { background: var(--gris-claro); }
+  .ruta-node-header.selected { background: var(--selected-bg); }
+  .ruta-chevron { font-size: 10px; color: var(--texto-sec); transition: transform 0.15s; flex-shrink: 0; }
+  .ruta-node.open .ruta-chevron { transform: rotate(90deg); }
+  .ruta-node-name { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ruta-node-fecha { font-size: 10px; color: var(--texto-sec); white-space: nowrap; }
+  .ruta-badge { font-size: 10px; font-weight: 600; background: var(--amber-bg); color: var(--amber-text); padding: 1px 6px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
 
+  /* Sub-nodos cliente */
+  .clientes-list { display: none; }
+  .ruta-node.open .clientes-list { display: block; }
+  .cliente-node { padding: 7px 14px 7px 30px; display: flex; align-items: center; justify-content: space-between; gap: 6px; cursor: pointer; border-top: 1px solid var(--gris-claro); }
+  .cliente-node:hover { background: var(--gris-claro); }
+  .cliente-node.selected { background: var(--selected-bg); }
+  .cliente-node-name { font-size: 12px; color: var(--texto); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cliente-badge { font-size: 10px; font-weight: 600; background: var(--amber-bg); color: var(--amber-text); padding: 1px 6px; border-radius: 10px; flex-shrink: 0; }
+
+  /* COLUMNA DERECHA — detalle productos */
+  .col-der { padding: 0; display: flex; flex-direction: column; }
+  .col-der-header { padding: 10px 16px; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; background: var(--gris-claro); border-bottom: 1px solid var(--borde); display: flex; align-items: center; justify-content: space-between; }
+  .col-der-titulo { font-size: 13px; font-weight: 600; color: var(--texto); }
+  .col-der-sub { font-size: 11px; color: var(--texto-sec); margin-top: 1px; }
+
+  .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 40px; text-align: center; color: var(--texto-sec); }
+  .placeholder .ico { font-size: 32px; margin-bottom: 10px; }
+  .placeholder p { font-size: 13px; line-height: 1.5; max-width: 220px; }
+
+  /* Tabla productos */
   .prod-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .prod-table th { background: var(--gris-claro); padding: 7px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.4px; }
+  .prod-table th { background: var(--gris-claro); padding: 8px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.4px; position: sticky; top: 0; }
   .prod-table th.r, .prod-table td.r { text-align: right; }
-  .prod-table td { padding: 8px 16px; border-top: 1px solid var(--gris-claro); }
-  .prod-table tr:hover td { background: #fafaf8; }
-  .tag-reg { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; background: var(--amber-bg); color: var(--amber-text); margin-left: 6px; }
+  .prod-table td { padding: 9px 16px; border-top: 1px solid var(--gris-claro); }
+  .prod-table tr:hover td { background: #FAFAF8; }
+  .tag-reg { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 10px; background: var(--amber-bg); color: var(--amber-text); margin-left: 6px; }
+  .prod-cant { font-weight: 600; color: var(--amber); }
 
-  .btn-appsheet { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; border:1px solid var(--borde); background:var(--blanco); color:var(--gris); text-decoration:none; white-space:nowrap; transition:background 0.15s; }
-  .btn-appsheet:hover { background:var(--gris-claro); color:var(--texto); }
+  .col-der-scroll { overflow-y: auto; max-height: 600px; flex: 1; }
+
+  /* Total row */
+  .total-row td { border-top: 2px solid var(--borde) !important; font-weight: 600; background: var(--gris-claro) !important; }
+
+  /* Breadcrumb */
+  .breadcrumb { padding: 8px 16px; font-size: 11px; color: var(--texto-sec); border-bottom: 1px solid var(--gris-claro); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .breadcrumb span { color: var(--amber-text); font-weight: 600; }
 
   .estado { text-align: center; padding: 60px 24px; color: var(--texto-sec); }
   .estado .ico { font-size: 40px; margin-bottom: 12px; }
   .estado h3 { font-size: 15px; font-weight: 600; color: var(--texto); margin-bottom: 6px; }
   .estado p { font-size: 13px; line-height: 1.6; max-width: 380px; margin: 0 auto; }
   .error-box { background: var(--rojo-bg); border: 1px solid #F7C1C1; border-radius: 8px; padding: 12px 16px; color: var(--rojo-text); font-size: 13px; margin: 16px 24px; line-height: 1.5; }
-  .sec-titulo { font-size: 13px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
 
-
-  /* GRÁFICO */
-  .grafico-wrap { margin: 20px 24px 0; background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 16px 20px; }
-  .grafico-titulo { font-size: 12px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
-  .barras { display: flex; flex-direction: column; gap: 7px; }
-  .barra-row { display: flex; align-items: center; gap: 8px; }
-  .barra-label { font-size: 12px; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 130px; max-width: 170px; flex-shrink: 0; }
-  .barra-track { flex: 1; background: var(--gris-claro); border-radius: 4px; height: 18px; overflow: hidden; }
-  .barra-fill { height: 100%; border-radius: 4px; background: var(--amber); transition: width 0.4s ease; }
-  .barra-val { font-size: 11px; font-weight: 600; min-width: 32px; text-align: right; flex-shrink: 0; color: var(--amber-text); }
-  @media (max-width: 600px) {
-    .header, .filtros, .main, .resumen, .grafico-wrap { padding-left: 14px; padding-right: 14px; }
+  @media (max-width: 700px) {
+    .layout { grid-template-columns: 1fr; margin: 12px 14px; }
+    .col-izq { border-right: none; border-bottom: 1px solid var(--borde); max-height: 280px; }
+    .col-der-scroll { max-height: 400px; }
+    .header, .filtros, .resumen, .grafico-wrap { padding-left: 14px; padding-right: 14px; }
+    .grafico-wrap { margin-left: 14px; margin-right: 14px; }
     .resumen { grid-template-columns: repeat(2, 1fr); }
-    .prod-table { font-size: 12px; }
-    .prod-table th, .prod-table td { padding: 7px 10px; }
   }
 </style>
 </head>
@@ -107,7 +135,7 @@
     <span class="logo-dot"></span>
     <div>
       <div class="h-title">Reporte de Regalías por Ruta</div>
-      <div class="h-sub">Productos entregados como regalía por cliente y ruta</div>
+      <div class="h-sub">Productos entregados como regalía · por ruta y cliente</div>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -131,31 +159,35 @@
 <div id="error-container"></div>
 
 <div class="resumen" id="resumen" style="display:none;">
-  <div class="card-stat gris"><div class="num" id="s-rutas">—</div><div class="lbl">Rutas con regalías</div></div>
+  <div class="card-stat gris"><div class="num" id="s-rutas">—</div><div class="lbl">Rutas</div></div>
   <div class="card-stat gris"><div class="num" id="s-clientes">—</div><div class="lbl">Clientes</div></div>
-  <div class="card-stat amber"><div class="num" id="s-total-reg">—</div><div class="lbl">Total unidades</div></div>
-  <div class="card-stat gris"><div class="num" id="s-productos">—</div><div class="lbl">Productos distintos</div></div>
+  <div class="card-stat amber"><div class="num" id="s-total-reg">—</div><div class="lbl">Unidades</div></div>
+  <div class="card-stat gris"><div class="num" id="s-productos">—</div><div class="lbl">Productos</div></div>
 </div>
 
 <div id="grafico-container" style="display:none;"></div>
 
-<div class="main" id="main-content">
+<div id="main-content">
   <div class="estado">
     <div class="ico">🎁</div>
     <h3>Selecciona un rango de fechas</h3>
-    <p>Elige las fechas y presiona <strong>Cargar datos</strong> para ver las regalías entregadas por ruta y cliente.</p>
+    <p>Elige las fechas y presiona <strong>Cargar datos</strong> para ver las regalías por ruta y cliente.</p>
   </div>
 </div>
 
 <script>
-const SHEET_OT = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=392195505&single=true&output=csv';
+const SHEET_OT='https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=392195505&single=true&output=csv';
+
+// Estado de selección activa
+let _data={rutas:[],prodGlobal:{}};
+let _sel={tipo:null,rutaId:null,clienteId:null}; // tipo: 'ruta' | 'cliente'
 
 function parseCSVLine(line) {
   const r=[]; let c='', inQ=false;
   for(let i=0;i<line.length;i++){
     const ch=line[i];
-    if(ch==='"' && !inQ){ inQ=true; }
-    else if(ch==='"' && inQ){ inQ=false; }
+    if(ch==='"'&&!inQ){inQ=true;}
+    else if(ch==='"'&&inQ){inQ=false;}
     else if(ch===','&&!inQ){r.push(c.trim());c='';}
     else{c+=ch;}
   }
@@ -179,7 +211,6 @@ function normFecha(f) {
   const p=f.split(/[\/\-]/);
   if(p.length===3){
     if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-    // dd/mm/yyyy — formato confirmado de AppSheet Honduras
     return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
   }
   return f;
@@ -195,14 +226,13 @@ async function cargarDatos() {
   const hasta=document.getElementById('fecha-fin').value;
   if(!desde||!hasta){mostrarError('Selecciona un rango de fechas.');return;}
   if(desde>hasta){mostrarError('La fecha inicio debe ser anterior a la fecha final.');return;}
-  setLoading(true); limpiarError();
+  setLoading(true); limpiarError(); _sel={tipo:null,rutaId:null,clienteId:null};
 
   try {
     const resp=await fetch(SHEET_OT);
     if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const rows=parseCSV(await resp.text());
 
-    // Filtrar solo registros con Regalia > 0 en el rango
     const regalia=rows.filter(r=>
       r['ELIMINADO']!=='Y' &&
       enRango(r['Fecha'],desde,hasta) &&
@@ -210,49 +240,49 @@ async function cargarDatos() {
     );
 
     if(regalia.length===0){
-      mostrarVacio('Sin regalías en el período','No se encontraron regalías entregadas entre las fechas seleccionadas.');
+      mostrarVacio('Sin regalías en el período','No se encontraron regalías entre las fechas seleccionadas.');
+      document.getElementById('grafico-container').style.display='none';
+      document.getElementById('resumen').style.display='none';
       setLoading(false); return;
     }
 
-    // Agrupar por Ruta → Cliente → Producto
-    // Usar Des. Cliente como nombre legible; agrupar clientes por Des. Cliente
+    // Agrupar
     const porRuta={};
     const prodGlobal={};
-
     regalia.forEach(r=>{
       const ruta=r['Ruta']||'Sin ruta';
-      const clienteKey=r['Des. Cliente']||r['Cliente']||'Sin cliente';
+      const clienteNombre=r['Des. Cliente']||r['Cliente']||'Sin cliente';
       const producto=r['Producto']||'Sin producto';
       const cant=parseFloat(r['Cantidad'])||0;
       const fecha=r['Fecha']||'';
       const fechaNorm=normFecha(fecha);
 
-      if(!porRuta[ruta]) porRuta[ruta]={ruta, clientes:{}, totalReg:0, fecha, fechaNorm};
-      // Guardar fecha más reciente de la ruta
-      if(fechaNorm > porRuta[ruta].fechaNorm){ porRuta[ruta].fecha=fecha; porRuta[ruta].fechaNorm=fechaNorm; }
+      if(!porRuta[ruta]) porRuta[ruta]={id:ruta,ruta,clientes:{},totalReg:0,fecha,fechaNorm};
+      if(fechaNorm>porRuta[ruta].fechaNorm){porRuta[ruta].fecha=fecha;porRuta[ruta].fechaNorm=fechaNorm;}
 
-      if(!porRuta[ruta].clientes[clienteKey]) porRuta[ruta].clientes[clienteKey]={cliente:clienteKey, productos:{}, totalReg:0};
-      const pc=porRuta[ruta].clientes[clienteKey];
-      if(!pc.productos[producto]) pc.productos[producto]={producto, cant:0};
-      pc.productos[producto].cant+=cant;
-      pc.totalReg+=cant;
-      porRuta[ruta].totalReg+=cant;
-
-      // Acumular global por producto
+      const rutaObj=porRuta[ruta];
+      if(!rutaObj.clientes[clienteNombre]) rutaObj.clientes[clienteNombre]={id:clienteNombre,nombre:clienteNombre,productos:{},totalReg:0};
+      const cl=rutaObj.clientes[clienteNombre];
+      if(!cl.productos[producto]) cl.productos[producto]={producto,cant:0};
+      cl.productos[producto].cant+=cant;
+      cl.totalReg+=cant;
+      rutaObj.totalReg+=cant;
       prodGlobal[producto]=(prodGlobal[producto]||0)+cant;
     });
 
-    // Ordenar rutas descendente por fecha
     const rutas=Object.values(porRuta).sort((a,b)=>{
       if(b.fechaNorm>a.fechaNorm) return 1;
       if(b.fechaNorm<a.fechaNorm) return -1;
       return b.totalReg-a.totalReg;
     });
+    rutas.forEach(r=>{ r.clientes=Object.values(r.clientes).sort((a,b)=>b.totalReg-a.totalReg); });
 
+    _data={rutas,prodGlobal};
+
+    // Resumen
     const totalClientes=new Set(regalia.map(r=>r['Des. Cliente']||r['Cliente'])).size;
     const totalReg=rutas.reduce((s,r)=>s+r.totalReg,0);
-    const totalProds=new Set(regalia.map(r=>r['Producto'])).size;
-
+    const totalProds=Object.keys(prodGlobal).length;
     document.getElementById('s-rutas').textContent=rutas.length;
     document.getElementById('s-clientes').textContent=totalClientes;
     document.getElementById('s-total-reg').textContent=fmt(totalReg);
@@ -260,94 +290,186 @@ async function cargarDatos() {
     document.getElementById('resumen').style.display='';
     document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
 
-    // Gráfico de productos
     renderGrafico(prodGlobal);
-
-    const fechaStr=desde===hasta?fmtF(desde):`${fmtF(desde)} – ${fmtF(hasta)}`;
-    let html=`<div class="sec-titulo">${rutas.length} rutas con regalías &middot; ${fechaStr}</div><div class="rutas-grid">`;
-
-    rutas.forEach((r,i)=>{
-      const clientesArr=Object.values(r.clientes).sort((a,b)=>b.totalReg-a.totalReg);
-      const appsheetUrl=`https://www.appsheet.com/start/8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc?platform=desktop#appName=Ribere%C3%B1aApp-753059166&row=${encodeURIComponent(r.ruta)}&view=MER_RUTA_Detail`;
-
-      let clientesHtml='';
-      clientesArr.forEach(cl=>{
-        const prodsArr=Object.values(cl.productos).sort((a,b)=>b.cant-a.cant);
-        clientesHtml+=`
-          <div class="cliente-section">
-            <div class="cliente-header">
-              <div>
-                <span class="cliente-nombre">${esc(cl.cliente)}</span>
-              </div>
-              <span class="badge-cant">🎁 ${fmt(cl.totalReg)} unid.</span>
-            </div>
-            <table class="prod-table">
-              <thead><tr>
-                <th>Producto</th>
-                <th class="r">Cant. regalía</th>
-              </tr></thead>
-              <tbody>
-                ${prodsArr.map(p=>`
-                  <tr>
-                    <td>${esc(p.producto)}<span class="tag-reg">Regalía</span></td>
-                    <td class="r" style="font-weight:600;color:var(--amber);">${fmt(p.cant)}</td>
-                  </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>`;
-      });
-
-      html+=`
-        <div class="ruta-card" id="rc-${i}">
-          <div class="ruta-header" onclick="tog(${i})">
-            <div>
-              <div class="ruta-nombre">Ruta ${esc(r.ruta)}</div>
-              <div class="ruta-responsable">${clientesArr.length} cliente${clientesArr.length!==1?'s':''} con regalías &nbsp;·&nbsp; <span style="font-weight:400;color:var(--texto-sec);">${esc(r.fecha)}</span></div>
-            </div>
-            <div class="ruta-badges">
-              <span class="badge-amber">🎁 ${fmt(r.totalReg)} unidades</span>
-              <a href="${appsheetUrl}" target="_blank" onclick="event.stopPropagation()" class="btn-appsheet" title="Ver en AppSheet">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                AppSheet
-              </a>
-              <span class="chevron">▾</span>
-            </div>
-          </div>
-          <div class="ruta-detalle">${clientesHtml}</div>
-        </div>`;
-    });
-
-    html+='</div>';
-    document.getElementById('main-content').innerHTML=html;
+    renderLayout(rutas);
 
   } catch(e) {
-    mostrarError('No se pudieron cargar los datos. Verifica que la hoja esté publicada como CSV público.<br><small style="opacity:0.7">'+e.message+'</small>');
+    mostrarError('No se pudieron cargar los datos.<br><small style="opacity:0.7">'+e.message+'</small>');
   }
   setLoading(false);
 }
 
+// ── GRÁFICO ──────────────────────────────────────────────────────────────────
 function renderGrafico(prodGlobal) {
-  const prods=Object.entries(prodGlobal).sort((a,b)=>b[1]-a[1]);
-  if(prods.length===0){ document.getElementById('grafico-container').style.display='none'; return; }
+  const prods=Object.entries(prodGlobal).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  if(!prods.length){document.getElementById('grafico-container').style.display='none';return;}
   const maxVal=prods[0][1];
-  let barras='';
+  let bars='';
   prods.forEach(([prod,cant])=>{
-    const pct=Math.round((cant/maxVal)*100);
-    barras+=`<div class="barra-row">
-      <div class="barra-label" title="${esc(prod)}">${esc(prod)}</div>
-      <div class="barra-track"><div class="barra-fill" style="width:${pct}%"></div></div>
-      <div class="barra-val">${fmt(cant)}</div>
+    const pct=Math.round((cant/maxVal)*96)+4;
+    bars+=`<div class="chart-bar-wrap">
+      <div class="chart-bar-val">${fmt(cant)}</div>
+      <div class="chart-bar" style="height:${pct}%" title="${esc(prod)}: ${fmt(cant)} unidades"></div>
+      <div class="chart-bar-lbl">${esc(prod)}</div>
     </div>`;
   });
   document.getElementById('grafico-container').style.display='';
   document.getElementById('grafico-container').innerHTML=`
     <div class="grafico-wrap">
-      <div class="grafico-titulo">Productos entregados como regalía — período filtrado</div>
-      <div class="barras">${barras}</div>
+      <div class="grafico-titulo">Frecuencia de regalías por producto — período filtrado</div>
+      <div class="chart-bars">
+        <div class="chart-baseline"></div>
+        ${bars}
+      </div>
     </div>`;
 }
 
-function tog(i){ document.getElementById('rc-'+i).classList.toggle('open'); }
+// ── LAYOUT DOS COLUMNAS ──────────────────────────────────────────────────────
+function renderLayout(rutas) {
+  // Árbol izquierdo
+  let arbol='';
+  rutas.forEach((r,ri)=>{
+    let clisHtml='<div class="clientes-list">';
+    r.clientes.forEach((cl,ci)=>{
+      clisHtml+=`<div class="cliente-node" id="cn-${ri}-${ci}" onclick="selCliente(${ri},${ci})">
+        <span class="cliente-node-name">${esc(cl.nombre)}</span>
+        <span class="cliente-badge">🎁 ${fmt(cl.totalReg)}</span>
+      </div>`;
+    });
+    clisHtml+='</div>';
+    arbol+=`<div class="ruta-node" id="rn-${ri}">
+      <div class="ruta-node-header" onclick="toggleRuta(${ri})">
+        <span class="ruta-chevron">▶</span>
+        <span class="ruta-node-name">Ruta ${esc(r.ruta)}</span>
+        <span class="ruta-node-fecha">${esc(r.fecha)}</span>
+        <span class="ruta-badge">${fmt(r.totalReg)}</span>
+      </div>
+      ${clisHtml}
+    </div>`;
+  });
+
+  document.getElementById('main-content').innerHTML=`
+    <div class="layout">
+      <div class="col-izq">
+        <div class="col-izq-header">
+          Rutas y clientes
+          <button class="btn-clear" onclick="limpiarSel()">Ver todo</button>
+        </div>
+        ${arbol}
+      </div>
+      <div class="col-der" id="col-der">
+        <div class="col-der-header">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--texto-sec);text-transform:uppercase;letter-spacing:0.5px;">Detalle de productos</div>
+          </div>
+        </div>
+        <div class="placeholder" id="der-placeholder">
+          <div class="ico">👈</div>
+          <p>Selecciona una ruta o cliente para ver el detalle de productos con regalía</p>
+        </div>
+        <div class="col-der-scroll" id="der-tabla" style="display:none;"></div>
+      </div>
+    </div>`;
+}
+
+function toggleRuta(ri) {
+  const node=document.getElementById('rn-'+ri);
+  const header=node.querySelector('.ruta-node-header');
+  const wasOpen=node.classList.contains('open');
+  node.classList.toggle('open');
+  // Si se abre, seleccionar la ruta
+  if(!wasOpen) selRuta(ri);
+}
+
+function selRuta(ri) {
+  // Limpiar selecciones previas
+  document.querySelectorAll('.ruta-node-header').forEach(h=>h.classList.remove('selected'));
+  document.querySelectorAll('.cliente-node').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('rn-'+ri).querySelector('.ruta-node-header').classList.add('selected');
+  _sel={tipo:'ruta',rutaId:ri,clienteId:null};
+  mostrarProductos();
+}
+
+function selCliente(ri,ci) {
+  document.querySelectorAll('.ruta-node-header').forEach(h=>h.classList.remove('selected'));
+  document.querySelectorAll('.cliente-node').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('cn-'+ri+'-'+ci).classList.add('selected');
+  _sel={tipo:'cliente',rutaId:ri,clienteId:ci};
+  mostrarProductos();
+}
+
+function limpiarSel() {
+  document.querySelectorAll('.ruta-node-header').forEach(h=>h.classList.remove('selected'));
+  document.querySelectorAll('.cliente-node').forEach(c=>c.classList.remove('selected'));
+  _sel={tipo:null,rutaId:null,clienteId:null};
+  document.getElementById('der-placeholder').style.display='flex';
+  document.getElementById('der-tabla').style.display='none';
+}
+
+function mostrarProductos() {
+  const {tipo,rutaId,clienteId}=_sel;
+  const ruta=_data.rutas[rutaId];
+  let prods={}, titulo='', subtitulo='';
+
+  if(tipo==='ruta'){
+    titulo=`Ruta ${esc(ruta.ruta)}`;
+    subtitulo=`${ruta.clientes.length} clientes · ${esc(ruta.fecha)} · ${fmt(ruta.totalReg)} unidades`;
+    // Agregar todos los productos de todos los clientes
+    ruta.clientes.forEach(cl=>{
+      Object.values(cl.productos).forEach(p=>{
+        prods[p.producto]=(prods[p.producto]||0)+p.cant;
+      });
+    });
+  } else {
+    const cl=ruta.clientes[clienteId];
+    titulo=esc(cl.nombre);
+    subtitulo=`Ruta ${esc(ruta.ruta)} · ${fmt(cl.totalReg)} unidades`;
+    Object.values(cl.productos).forEach(p=>{ prods[p.producto]=p.cant; });
+  }
+
+  const prodsArr=Object.entries(prods).sort((a,b)=>b[1]-a[1]);
+  const total=prodsArr.reduce((s,[,c])=>s+c,0);
+
+  let filas=prodsArr.map(([prod,cant])=>`
+    <tr>
+      <td>${esc(prod)}<span class="tag-reg">Regalía</span></td>
+      <td class="r prod-cant">${fmt(cant)}</td>
+      <td class="r" style="color:var(--texto-sec);font-size:12px;">${Math.round(cant/total*100)}%</td>
+    </tr>`).join('');
+
+  filas+=`<tr class="total-row">
+    <td>Total</td>
+    <td class="r prod-cant">${fmt(total)}</td>
+    <td class="r" style="color:var(--texto-sec);font-size:12px;">100%</td>
+  </tr>`;
+
+  const tablaHtml=`
+    <div class="breadcrumb">
+      ${tipo==='cliente'?`Ruta ${esc(ruta.ruta)} &rsaquo; <span>${esc(ruta.clientes[clienteId].nombre)}</span>`:
+        `<span>Ruta ${esc(ruta.ruta)}</span> · todos los clientes`}
+    </div>
+    <table class="prod-table">
+      <thead><tr>
+        <th>Producto</th>
+        <th class="r">Cantidad</th>
+        <th class="r">%</th>
+      </tr></thead>
+      <tbody>${filas}</tbody>
+    </table>`;
+
+  document.getElementById('der-placeholder').style.display='none';
+  const derTabla=document.getElementById('der-tabla');
+  derTabla.style.display='block';
+  derTabla.innerHTML=tablaHtml;
+
+  // Actualizar header derecho
+  document.querySelector('.col-der-header').innerHTML=`
+    <div>
+      <div class="col-der-titulo">${titulo}</div>
+      <div class="col-der-sub">${subtitulo}</div>
+    </div>`;
+}
+
 function setLoading(v){
   document.getElementById('spinner').style.display=v?'block':'none';
   document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';
@@ -356,12 +478,10 @@ function setLoading(v){
 function mostrarError(msg){
   document.getElementById('error-container').innerHTML=`<div class="error-box">⚠ ${msg}</div>`;
   document.getElementById('main-content').innerHTML='';
-  document.getElementById('resumen').style.display='none';
 }
 function limpiarError(){ document.getElementById('error-container').innerHTML=''; }
 function mostrarVacio(t,d){
   document.getElementById('main-content').innerHTML=`<div class="estado"><div class="ico">🎁</div><h3>${t}</h3><p>${d}</p></div>`;
-  document.getElementById('resumen').style.display='none';
 }
 
 document.getElementById('fecha-inicio').value=hoy();
