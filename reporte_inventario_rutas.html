@@ -272,7 +272,7 @@ async function cargarDatos() {
       const [ruta,producto]=key.split('||');
       if(!porRuta[ruta]){
         const ri=rutasFiltradas.find(r=>r['RUTA']===ruta);
-        porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||')':'',productos:[]};
+        porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||''):'',productos:[]};
       }
       const desp=despMap[key]||0, vend=vendMap[key]||0, nv=nvMap[key]||0;
       porRuta[ruta].productos.push({producto,desp,vend,nv,dif:desp-vend-nv});
