@@ -193,7 +193,7 @@ async function cargarDatos() {
     const regalia=rows.filter(r=>
       r['ELIMINADO']!=='Y' &&
       enRango(r['Fecha'],desde,hasta) &&
-      parseFloat(r['Regalia']||'0')>0
+      (r['Regalia']||'').toString().trim().toUpperCase()==='SI'
     );
 
     if(regalia.length===0){
@@ -208,7 +208,7 @@ async function cargarDatos() {
       const cliente=r['Cliente']||'Sin cliente';
       const producto=r['Producto']||'Sin producto';
       const ubicacion=r['Des. Cliente']||r['Ubicacion']||'';
-      const cant=parseFloat(r['Regalia'])||0;
+      const cant=parseFloat(r['Cantidad'])||0;
 
       if(!porRuta[ruta]) porRuta[ruta]={ruta, clientes:{}, totalReg:0};
       if(!porRuta[ruta].clientes[cliente]) porRuta[ruta].clientes[cliente]={cliente, ubicacion, productos:{}, totalReg:0};
