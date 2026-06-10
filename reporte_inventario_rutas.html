@@ -329,7 +329,7 @@ function renderReporte(rutas,desde,hasta) {
   rutas.forEach((r,i)=>{
     const cls=r.tieneFalta?'falta':'ok';
     const badgeTxt=r.tieneFalta?`⚠ ${fmt(Math.abs(r.totalDif))} unid. sin rendir`:'✓ Cuadra';
-    const appsheetUrl=`https://www.appsheet.com/start/8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc?platform=desktop#appName=Ribe%C3%B1aApp-753059166&row=${encodeURIComponent(r.ruta)}&view=MER_RUTA_Detail`;
+    const appsheetUrl=`https://www.appsheet.com/start/8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc?platform=desktop#appName=Ribere%C3%B1aApp-753059166&row=${encodeURIComponent(r.ruta)}&view=MER_RUTA_Detail`;
     html+=`
       <div class="ruta-card ${cls}" id="rc-${i}">
         <div class="ruta-header" onclick="tog(${i})">
