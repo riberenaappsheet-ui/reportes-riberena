@@ -202,8 +202,8 @@ function normFecha(f) {
   const p=f.split(/[\/\-]/);
   if(p.length===3){
     if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-    if(parseInt(p[0])>12) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-    return `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
+    // dd/mm/yyyy — formato confirmado de AppSheet Honduras
+    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
   }
   return f;
 }
@@ -276,7 +276,7 @@ async function cargarDatos() {
       const [ruta,producto]=key.split('||');
       if(!porRuta[ruta]){
         const ri=rutasFiltradas.find(r=>r['RUTA']===ruta);
-        porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||''):'',productos:[]};
+        porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||''):'',fecha:ri?(ri['Fecha']||''):'',fechaNorm:ri?normFecha(ri['Fecha']||''):'',productos:[]};
       }
       const desp=despMap[key]||0, vend=vendMap[key]||0, nv=nvMap[key]||0, dif=desp-vend-nv;
       porRuta[ruta].productos.push({producto,desp,vend,nv,dif});
@@ -298,6 +298,10 @@ async function cargarDatos() {
       return r;
     });
     rutas.sort((a,b)=>{
+      // Primero descendente por fecha
+      if(b.fechaNorm > a.fechaNorm) return 1;
+      if(b.fechaNorm < a.fechaNorm) return -1;
+      // Mismo día: con diferencia primero
       if(a.tieneFalta&&!b.tieneFalta) return -1;
       if(!a.tieneFalta&&b.tieneFalta) return 1;
       return a.ruta.localeCompare(b.ruta);
@@ -384,7 +388,7 @@ function renderReporte(rutas,desde,hasta) {
         <div class="ruta-header" onclick="tog(${i})">
           <div>
             <div class="ruta-nombre">Ruta ${esc(r.ruta)}</div>
-            <div class="ruta-responsable">${esc(r.responsable)}</div>
+            <div class="ruta-responsable">${esc(r.responsable)}${r.fecha ? ` &nbsp;·&nbsp; <span style="color:var(--texto-sec);font-weight:400;">${esc(r.fecha)}</span>` : ''}</div>
           </div>
           <div class="ruta-nums">
             <div class="num-item"><div class="n">${fmt(r.totalDesp)}</div><div class="l">Desp.</div></div>
