@@ -82,8 +82,18 @@
   .error-box { background: var(--rojo-bg); border: 1px solid #F7C1C1; border-radius: 8px; padding: 12px 16px; color: var(--rojo-text); font-size: 13px; margin: 16px 24px; line-height: 1.5; }
   .sec-titulo { font-size: 13px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
 
+
+  /* GRÁFICO */
+  .grafico-wrap { margin: 20px 24px 0; background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 16px 20px; }
+  .grafico-titulo { font-size: 12px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .barras { display: flex; flex-direction: column; gap: 7px; }
+  .barra-row { display: flex; align-items: center; gap: 8px; }
+  .barra-label { font-size: 12px; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 130px; max-width: 170px; flex-shrink: 0; }
+  .barra-track { flex: 1; background: var(--gris-claro); border-radius: 4px; height: 18px; overflow: hidden; }
+  .barra-fill { height: 100%; border-radius: 4px; background: var(--amber); transition: width 0.4s ease; }
+  .barra-val { font-size: 11px; font-weight: 600; min-width: 32px; text-align: right; flex-shrink: 0; color: var(--amber-text); }
   @media (max-width: 600px) {
-    .header, .filtros, .main, .resumen { padding-left: 14px; padding-right: 14px; }
+    .header, .filtros, .main, .resumen, .grafico-wrap { padding-left: 14px; padding-right: 14px; }
     .resumen { grid-template-columns: repeat(2, 1fr); }
     .prod-table { font-size: 12px; }
     .prod-table th, .prod-table td { padding: 7px 10px; }
@@ -126,6 +136,8 @@
   <div class="card-stat amber"><div class="num" id="s-total-reg">—</div><div class="lbl">Total unidades</div></div>
   <div class="card-stat gris"><div class="num" id="s-productos">—</div><div class="lbl">Productos distintos</div></div>
 </div>
+
+<div id="grafico-container" style="display:none;"></div>
 
 <div class="main" id="main-content">
   <div class="estado">
@@ -203,26 +215,41 @@ async function cargarDatos() {
     }
 
     // Agrupar por Ruta → Cliente → Producto
+    // Usar Des. Cliente como nombre legible; agrupar clientes por Des. Cliente
     const porRuta={};
+    const prodGlobal={};
+
     regalia.forEach(r=>{
       const ruta=r['Ruta']||'Sin ruta';
-      const cliente=r['Cliente']||'Sin cliente';
+      const clienteKey=r['Des. Cliente']||r['Cliente']||'Sin cliente';
       const producto=r['Producto']||'Sin producto';
-      const ubicacion=r['Des. Cliente']||r['Ubicacion']||'';
       const cant=parseFloat(r['Cantidad'])||0;
+      const fecha=r['Fecha']||'';
+      const fechaNorm=normFecha(fecha);
 
-      if(!porRuta[ruta]) porRuta[ruta]={ruta, clientes:{}, totalReg:0};
-      if(!porRuta[ruta].clientes[cliente]) porRuta[ruta].clientes[cliente]={cliente, ubicacion, productos:{}, totalReg:0};
+      if(!porRuta[ruta]) porRuta[ruta]={ruta, clientes:{}, totalReg:0, fecha, fechaNorm};
+      // Guardar fecha más reciente de la ruta
+      if(fechaNorm > porRuta[ruta].fechaNorm){ porRuta[ruta].fecha=fecha; porRuta[ruta].fechaNorm=fechaNorm; }
 
-      const pc=porRuta[ruta].clientes[cliente];
+      if(!porRuta[ruta].clientes[clienteKey]) porRuta[ruta].clientes[clienteKey]={cliente:clienteKey, productos:{}, totalReg:0};
+      const pc=porRuta[ruta].clientes[clienteKey];
       if(!pc.productos[producto]) pc.productos[producto]={producto, cant:0};
       pc.productos[producto].cant+=cant;
       pc.totalReg+=cant;
       porRuta[ruta].totalReg+=cant;
+
+      // Acumular global por producto
+      prodGlobal[producto]=(prodGlobal[producto]||0)+cant;
     });
 
-    const rutas=Object.values(porRuta).sort((a,b)=>b.totalReg-a.totalReg);
-    const totalClientes=new Set(regalia.map(r=>r['Cliente'])).size;
+    // Ordenar rutas descendente por fecha
+    const rutas=Object.values(porRuta).sort((a,b)=>{
+      if(b.fechaNorm>a.fechaNorm) return 1;
+      if(b.fechaNorm<a.fechaNorm) return -1;
+      return b.totalReg-a.totalReg;
+    });
+
+    const totalClientes=new Set(regalia.map(r=>r['Des. Cliente']||r['Cliente'])).size;
     const totalReg=rutas.reduce((s,r)=>s+r.totalReg,0);
     const totalProds=new Set(regalia.map(r=>r['Producto'])).size;
 
@@ -232,6 +259,9 @@ async function cargarDatos() {
     document.getElementById('s-productos').textContent=totalProds;
     document.getElementById('resumen').style.display='';
     document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
+
+    // Gráfico de productos
+    renderGrafico(prodGlobal);
 
     const fechaStr=desde===hasta?fmtF(desde):`${fmtF(desde)} – ${fmtF(hasta)}`;
     let html=`<div class="sec-titulo">${rutas.length} rutas con regalías &middot; ${fechaStr}</div><div class="rutas-grid">`;
@@ -248,7 +278,6 @@ async function cargarDatos() {
             <div class="cliente-header">
               <div>
                 <span class="cliente-nombre">${esc(cl.cliente)}</span>
-                ${cl.ubicacion?`<span class="cliente-ubicacion"> · ${esc(cl.ubicacion)}</span>`:''}
               </div>
               <span class="badge-cant">🎁 ${fmt(cl.totalReg)} unid.</span>
             </div>
@@ -273,7 +302,7 @@ async function cargarDatos() {
           <div class="ruta-header" onclick="tog(${i})">
             <div>
               <div class="ruta-nombre">Ruta ${esc(r.ruta)}</div>
-              <div class="ruta-responsable">${clientesArr.length} cliente${clientesArr.length!==1?'s':''} con regalías</div>
+              <div class="ruta-responsable">${clientesArr.length} cliente${clientesArr.length!==1?'s':''} con regalías &nbsp;·&nbsp; <span style="font-weight:400;color:var(--texto-sec);">${esc(r.fecha)}</span></div>
             </div>
             <div class="ruta-badges">
               <span class="badge-amber">🎁 ${fmt(r.totalReg)} unidades</span>
@@ -295,6 +324,27 @@ async function cargarDatos() {
     mostrarError('No se pudieron cargar los datos. Verifica que la hoja esté publicada como CSV público.<br><small style="opacity:0.7">'+e.message+'</small>');
   }
   setLoading(false);
+}
+
+function renderGrafico(prodGlobal) {
+  const prods=Object.entries(prodGlobal).sort((a,b)=>b[1]-a[1]);
+  if(prods.length===0){ document.getElementById('grafico-container').style.display='none'; return; }
+  const maxVal=prods[0][1];
+  let barras='';
+  prods.forEach(([prod,cant])=>{
+    const pct=Math.round((cant/maxVal)*100);
+    barras+=`<div class="barra-row">
+      <div class="barra-label" title="${esc(prod)}">${esc(prod)}</div>
+      <div class="barra-track"><div class="barra-fill" style="width:${pct}%"></div></div>
+      <div class="barra-val">${fmt(cant)}</div>
+    </div>`;
+  });
+  document.getElementById('grafico-container').style.display='';
+  document.getElementById('grafico-container').innerHTML=`
+    <div class="grafico-wrap">
+      <div class="grafico-titulo">Productos entregados como regalía — período filtrado</div>
+      <div class="barras">${barras}</div>
+    </div>`;
 }
 
 function tog(i){ document.getElementById('rc-'+i).classList.toggle('open'); }
