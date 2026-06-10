@@ -6,18 +6,11 @@
 <title>Reporte de Inventario por Ruta</title>
 <style>
   :root {
-    --verde: #1D9E75;
-    --verde-bg: #E1F5EE;
-    --verde-text: #085041;
-    --rojo: #E24B4A;
-    --rojo-bg: #FCEBEB;
-    --rojo-text: #501313;
-    --gris: #5F5E5A;
-    --gris-claro: #F1EFE8;
-    --borde: #D3D1C7;
-    --texto: #2C2C2A;
-    --texto-sec: #888780;
-    --blanco: #ffffff;
+    --verde: #1D9E75; --verde-bg: #E1F5EE; --verde-text: #085041;
+    --rojo: #E24B4A; --rojo-bg: #FCEBEB; --rojo-text: #501313;
+    --azul: #378ADD; --azul-bg: #E6F1FB; --azul-text: #042C53;
+    --gris: #5F5E5A; --gris-claro: #F1EFE8; --borde: #D3D1C7;
+    --texto: #2C2C2A; --texto-sec: #888780; --blanco: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F8F7F4; color: var(--texto); font-size: 14px; min-height: 100vh; }
@@ -26,6 +19,8 @@
   .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--verde); display: inline-block; }
   .h-title { font-size: 16px; font-weight: 600; }
   .h-sub { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
+  .nav-link { font-size: 12px; font-weight: 500; color: var(--azul); text-decoration: none; border: 1px solid var(--azul-bg); background: var(--azul-bg); padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+  .nav-link:hover { background: #B5D4F4; }
 
   .filtros { background: var(--blanco); border-bottom: 1px solid var(--borde); padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .filtros label { font-size: 12px; color: var(--texto-sec); font-weight: 500; }
@@ -45,33 +40,45 @@
   .card-stat.rojo .num { color: var(--rojo); }
   .card-stat.gris .num { color: var(--gris); }
 
+  /* GRÁFICO */
+  .grafico-wrap { margin: 20px 24px 0; background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; padding: 16px 20px; }
+  .grafico-titulo { font-size: 12px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .barras { display: flex; flex-direction: column; gap: 7px; }
+  .barra-row { display: flex; align-items: center; gap: 8px; }
+  .barra-label { font-size: 12px; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 120px; max-width: 160px; flex-shrink: 0; }
+  .barra-track { flex: 1; background: var(--gris-claro); border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
+  .barra-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .barra-fill.falta { background: var(--rojo); }
+  .barra-fill.ok { background: var(--verde); }
+  .barra-val { font-size: 11px; font-weight: 600; min-width: 32px; text-align: right; flex-shrink: 0; }
+  .barra-val.falta { color: var(--rojo-text); }
+  .barra-val.ok { color: var(--verde-text); }
+  .grafico-leyenda { display: flex; gap: 16px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--gris-claro); }
+  .gl-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--texto-sec); }
+  .gl-dot { width: 8px; height: 8px; border-radius: 2px; }
+
   .main { padding: 20px 24px; }
   .rutas-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 
   .ruta-card { background: var(--blanco); border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
   .ruta-card.ok { border-left: 4px solid var(--verde); }
   .ruta-card.falta { border-left: 4px solid var(--rojo); }
-
   .ruta-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; flex-wrap: wrap; }
   .ruta-header:hover { background: var(--gris-claro); }
   .ruta-nombre { font-weight: 600; font-size: 14px; }
   .ruta-responsable { font-size: 12px; color: var(--texto-sec); margin-top: 2px; }
-
   .ruta-nums { display: flex; gap: 16px; align-items: center; }
   .num-item { text-align: center; }
   .num-item .n { font-size: 15px; font-weight: 600; }
   .num-item .l { font-size: 10px; color: var(--texto-sec); text-transform: uppercase; }
-
   .ruta-badges { display: flex; align-items: center; gap: 8px; }
   .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
   .badge.ok { background: var(--verde-bg); color: var(--verde-text); }
   .badge.falta { background: var(--rojo-bg); color: var(--rojo-text); }
   .chevron { font-size: 14px; color: var(--texto-sec); transition: transform 0.2s; }
   .ruta-card.open .chevron { transform: rotate(180deg); }
-
   .ruta-detalle { display: none; border-top: 1px solid var(--borde); }
   .ruta-card.open .ruta-detalle { display: block; }
-
   .detalle-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .detalle-table th { background: var(--gris-claro); padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.4px; }
   .detalle-table th.r, .detalle-table td.r { text-align: right; }
@@ -85,9 +92,7 @@
   .estado .ico { font-size: 40px; margin-bottom: 12px; }
   .estado h3 { font-size: 15px; font-weight: 600; color: var(--texto); margin-bottom: 6px; }
   .estado p { font-size: 13px; line-height: 1.6; max-width: 380px; margin: 0 auto; }
-
   .error-box { background: var(--rojo-bg); border: 1px solid #F7C1C1; border-radius: 8px; padding: 12px 16px; color: var(--rojo-text); font-size: 13px; margin: 16px 24px; line-height: 1.5; }
-
   .sec-titulo { font-size: 13px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
   .leyenda { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
   .ley-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--texto-sec); }
@@ -98,11 +103,12 @@
   .btn-appsheet:hover { background:var(--gris-claro); color:var(--texto); }
 
   @media (max-width: 600px) {
-    .header, .filtros, .main, .resumen { padding-left: 14px; padding-right: 14px; }
+    .header, .filtros, .main, .resumen, .grafico-wrap { padding-left: 14px; padding-right: 14px; }
     .resumen { grid-template-columns: repeat(2, 1fr); }
     .ruta-nums { gap: 10px; }
     .detalle-table { font-size: 12px; }
     .detalle-table th, .detalle-table td { padding: 7px 8px; }
+    .barra-label { min-width: 80px; max-width: 100px; }
   }
 </style>
 </head>
@@ -116,7 +122,10 @@
       <div class="h-sub">Auditoría: Despachado − Vendido − No Vendido</div>
     </div>
   </div>
-  <div id="ultima-act" style="font-size:11px;color:var(--texto-sec);"></div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <a href="reporte_regalias.html" class="nav-link">🎁 Ver Regalías →</a>
+    <div id="ultima-act" style="font-size:11px;color:var(--texto-sec);"></div>
+  </div>
 </div>
 
 <div class="filtros">
@@ -142,8 +151,10 @@
   <div class="card-stat rojo"><div class="num" id="s-falta">—</div><div class="lbl">Con diferencia</div></div>
 </div>
 
+<div id="grafico-container" style="display:none;"></div>
+
 <div class="main" id="main-content">
-  <div class="estado" id="estado-inicial">
+  <div class="estado">
     <div class="ico">📦</div>
     <h3>Selecciona un rango de fechas</h3>
     <p>Elige las fechas y presiona <strong>Cargar datos</strong> para ver la auditoría de inventario por ruta.</p>
@@ -168,11 +179,10 @@ function parseCSVLine(line) {
   }
   r.push(c); return r;
 }
-
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
+  const lines=text.trim().split('\n');
   if(lines.length<2) return [];
-  const headers = parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
+  const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
   return lines.slice(1).map(line=>{
     const vals=parseCSVLine(line);
     const obj={};
@@ -180,13 +190,11 @@ function parseCSV(text) {
     return obj;
   }).filter(r=>Object.values(r).some(v=>v!==''));
 }
-
 async function fetchCSV(url) {
-  const resp = await fetch(url);
-  if(!resp.ok) throw new Error(`HTTP ${resp.status} al cargar datos`);
+  const resp=await fetch(url);
+  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return parseCSV(await resp.text());
 }
-
 function normFecha(f) {
   if(!f) return '';
   f=f.trim();
@@ -199,8 +207,7 @@ function normFecha(f) {
   }
   return f;
 }
-
-function enRango(fecha,desde,hasta){ const f=normFecha(fecha); return f>=desde&&f<=hasta; }
+function enRango(f,d,h){ const n=normFecha(f); return n>=d&&n<=h; }
 function hoy(){ return new Date().toISOString().split('T')[0]; }
 function fmt(n){ return Math.round(n).toLocaleString('es'); }
 function fmtF(f){ if(!f)return''; const[y,m,d]=f.split('-'); return`${d}/${m}/${y}`; }
@@ -210,29 +217,26 @@ async function cargarDatos() {
   const desde=document.getElementById('fecha-inicio').value;
   const hasta=document.getElementById('fecha-fin').value;
   if(!desde||!hasta){mostrarError('Selecciona un rango de fechas.');return;}
-  if(desde>hasta){mostrarError('La fecha de inicio debe ser anterior a la fecha final.');return;}
+  if(desde>hasta){mostrarError('La fecha inicio debe ser anterior a la fecha final.');return;}
   setLoading(true); limpiarError();
 
   try {
-    const [detalleRows,nvRows,otRows,rutaRows] = await Promise.all([
+    const [detalleRows,nvRows,otRows,rutaRows]=await Promise.all([
       fetchCSV(SHEETS.despachoDetalle),
       fetchCSV(SHEETS.noVendido),
       fetchCSV(SHEETS.otProducto),
       fetchCSV(SHEETS.merRuta)
     ]);
 
-    const rutasFiltradas = rutaRows.filter(r=>
-      enRango(r['Fecha'],desde,hasta) &&
-      r['ELIMINADO']!=='Y' &&
-      r['RUTA']&&r['RUTA']!==''
+    const rutasFiltradas=rutaRows.filter(r=>
+      enRango(r['Fecha'],desde,hasta)&&r['ELIMINADO']!=='Y'&&r['RUTA']&&r['RUTA']!==''
     );
-
     if(rutasFiltradas.length===0){
       mostrarVacio('Sin rutas en el período','No se encontraron rutas entre las fechas seleccionadas.');
+      document.getElementById('grafico-container').style.display='none';
       setLoading(false); return;
     }
 
-    // Mapa ID_OP -> {ruta, responsable}
     const idOpARuta={};
     rutasFiltradas.forEach(r=>{
       (r['Despacho']||'').split(',').forEach(idOp=>{
@@ -241,23 +245,19 @@ async function cargarDatos() {
       });
     });
 
-    // Acumular por ruta||producto
     const despMap={}, nvMap={}, vendMap={};
-
     detalleRows.forEach(r=>{
       if(r['ELIMINADO']==='Y') return;
       const info=idOpARuta[r['ID_OP']]; if(!info) return;
       const k=`${info.ruta}||${r['Producto']}`;
       despMap[k]=(despMap[k]||0)+(parseFloat(r['Cantidad'])||0);
     });
-
     nvRows.forEach(r=>{
       if(r['ELIMINADO']==='Y') return;
       const info=idOpARuta[r['ID_OP']]; if(!info) return;
       const k=`${info.ruta}||${r['Producto']}`;
       nvMap[k]=(nvMap[k]||0)+(parseFloat(r['Cantidad'])||0);
     });
-
     const rutasSet=new Set(rutasFiltradas.map(r=>r['RUTA']));
     otRows.forEach(r=>{
       if(r['ELIMINADO']==='Y') return;
@@ -267,17 +267,25 @@ async function cargarDatos() {
       vendMap[k]=(vendMap[k]||0)+(parseFloat(r['Cantidad'])||0);
     });
 
-    // Construir estructura por ruta
     const todasKeys=new Set([...Object.keys(despMap),...Object.keys(nvMap),...Object.keys(vendMap)]);
     const porRuta={};
+    // Acumular diferencia por producto (global, todas las rutas)
+    const difPorProducto={};
+
     todasKeys.forEach(key=>{
       const [ruta,producto]=key.split('||');
       if(!porRuta[ruta]){
         const ri=rutasFiltradas.find(r=>r['RUTA']===ruta);
         porRuta[ruta]={ruta,responsable:ri?(ri['Responsable']||''):'',productos:[]};
       }
-      const desp=despMap[key]||0, vend=vendMap[key]||0, nv=nvMap[key]||0;
-      porRuta[ruta].productos.push({producto,desp,vend,nv,dif:desp-vend-nv});
+      const desp=despMap[key]||0, vend=vendMap[key]||0, nv=nvMap[key]||0, dif=desp-vend-nv;
+      porRuta[ruta].productos.push({producto,desp,vend,nv,dif});
+      // Acumular diferencia global por producto
+      if(!difPorProducto[producto]) difPorProducto[producto]={desp:0,vend:0,nv:0,dif:0};
+      difPorProducto[producto].desp+=desp;
+      difPorProducto[producto].vend+=vend;
+      difPorProducto[producto].nv+=nv;
+      difPorProducto[producto].dif+=dif;
     });
 
     const rutas=Object.values(porRuta).map(r=>{
@@ -289,19 +297,61 @@ async function cargarDatos() {
       r.productos.sort((a,b)=>Math.abs(b.dif)-Math.abs(a.dif));
       return r;
     });
-
     rutas.sort((a,b)=>{
       if(a.tieneFalta&&!b.tieneFalta) return -1;
       if(!a.tieneFalta&&b.tieneFalta) return 1;
       return a.ruta.localeCompare(b.ruta);
     });
 
+    renderGrafico(difPorProducto);
     renderReporte(rutas,desde,hasta);
 
   } catch(e) {
     mostrarError('No se pudieron cargar los datos. Verifica que las hojas estén publicadas como CSV público.<br><small style="opacity:0.7">'+e.message+'</small>');
+    document.getElementById('grafico-container').style.display='none';
   }
   setLoading(false);
+}
+
+function renderGrafico(difPorProducto) {
+  // Solo productos con diferencia != 0, ordenados por magnitud
+  const productos = Object.entries(difPorProducto)
+    .filter(([,v])=>v.dif!==0)
+    .sort((a,b)=>Math.abs(b[1].dif)-Math.abs(a[1].dif))
+    .slice(0,20); // max 20 productos
+
+  if(productos.length===0){
+    document.getElementById('grafico-container').style.display='none';
+    return;
+  }
+
+  const maxAbs=Math.max(...productos.map(([,v])=>Math.abs(v.dif)));
+
+  let barras='';
+  productos.forEach(([prod,v])=>{
+    const pct=Math.round((Math.abs(v.dif)/maxAbs)*100);
+    const cls=v.dif>0?'falta':'ok';
+    const signo=v.dif>0?'−':'+';
+    barras+=`
+      <div class="barra-row">
+        <div class="barra-label" title="${esc(prod)}">${esc(prod)}</div>
+        <div class="barra-track">
+          <div class="barra-fill ${cls}" style="width:${pct}%"></div>
+        </div>
+        <div class="barra-val ${cls}">${signo}${fmt(Math.abs(v.dif))}</div>
+      </div>`;
+  });
+
+  document.getElementById('grafico-container').style.display='';
+  document.getElementById('grafico-container').innerHTML=`
+    <div class="grafico-wrap">
+      <div class="grafico-titulo">Diferencia acumulada por producto — todas las rutas del período</div>
+      <div class="barras">${barras}</div>
+      <div class="grafico-leyenda">
+        <div class="gl-item"><div class="gl-dot" style="background:var(--rojo)"></div> Unidades sin rendir (falta)</div>
+        <div class="gl-item"><div class="gl-dot" style="background:var(--verde)"></div> Exceso reportado</div>
+      </div>
+    </div>`;
 }
 
 function renderReporte(rutas,desde,hasta) {
@@ -315,7 +365,6 @@ function renderReporte(rutas,desde,hasta) {
   document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
 
   const fechaStr=desde===hasta?fmtF(desde):`${fmtF(desde)} – ${fmtF(hasta)}`;
-
   let html=`
     <div class="sec-titulo" style="margin-bottom:12px;">
       <span>${rutas.length} rutas &middot; ${fechaStr}</span>
@@ -354,15 +403,11 @@ function renderReporte(rutas,desde,hasta) {
         <div class="ruta-detalle">
           <table class="detalle-table">
             <thead><tr>
-              <th>Producto</th>
-              <th class="r">Despachado</th>
-              <th class="r">Vendido</th>
-              <th class="r">No vendido</th>
-              <th class="r">Diferencia</th>
+              <th>Producto</th><th class="r">Despachado</th><th class="r">Vendido</th><th class="r">No vendido</th><th class="r">Diferencia</th>
             </tr></thead>
             <tbody>
               ${r.productos.map(p=>{
-                let dc='dif-cero', dt='—';
+                let dc='dif-cero',dt='—';
                 if(p.dif>0){dc='dif-falta';dt=`−${fmt(p.dif)}`;}
                 else if(p.dif<0){dc='dif-ok';dt=`+${fmt(Math.abs(p.dif))}`;}
                 return`<tr><td>${esc(p.producto)}</td><td class="r">${fmt(p.desp)}</td><td class="r">${fmt(p.vend)}</td><td class="r">${fmt(p.nv)}</td><td class="r ${dc}">${dt}</td></tr>`;
@@ -377,7 +422,6 @@ function renderReporte(rutas,desde,hasta) {
 }
 
 function tog(i){ document.getElementById('rc-'+i).classList.toggle('open'); }
-
 function setLoading(v){
   document.getElementById('spinner').style.display=v?'block':'none';
   document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';
