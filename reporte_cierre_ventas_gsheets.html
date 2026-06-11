@@ -552,16 +552,9 @@ function renderRuta(r, idx) {
   });
   document.getElementById('total-unidades').textContent=U(totU);
 
-  // CLIENTES — desde MER_RUTA_OT filtrado por Ruta y fecha
-  // Columnas: Cliente, Des. Cliente, Tipo de Venta, Total Efectivo, Total Transferencia, Total Venta
-  const otRutaFiltrado=_otRows.filter(o=>
-    o['ELIMINADO']!=='Y'&&
-    o['Ruta']===rutaId&&
-    normFecha(o['Fecha'])===fechaNorm
-  );
-
-  // Calcular saldo crédito por cliente desde MER_RUTA_OT (ventas) y MER_RUTA_OT_ABONO (abonos)
-  // Saldo = SUM(Total Venta donde Tipo=Credito) - SUM(abonos Efectivo) - SUM(abonos Transferencia)
+  // CLIENTES — desde MER_RUTA_OT_PRODUCTO (mismo filtro que productos, misma tabla que funciona)
+  // Columnas correctas: Cliente, Des. Cliente, Tipo de Venta, Total Efectivo, Total Transferencia, Total Venta
+  // Saldo crédito = SUM(ventas crédito MER_RUTA_OT) - SUM(abonos MER_RUTA_OT_ABONO) por cliente
   const ventasCredito={}, abonosEfectivo={}, abonosTransf={};
   _otRows.filter(o=>o['ELIMINADO']!=='Y'&&(o['Tipo de Venta']||'').toUpperCase()==='CREDITO').forEach(o=>{
     const cli=o['Cliente']||'';
@@ -573,8 +566,9 @@ function renderRuta(r, idx) {
     abonosTransf[cli]=(abonosTransf[cli]||0)+cleanNum(a['Transferencia']);
   });
 
+  // Usar otFiltrado (MER_RUTA_OT_PRODUCTO) que ya está filtrado por ruta+fecha y funciona
   const cliMap={};
-  otRutaFiltrado.forEach(o=>{
+  otFiltrado.forEach(o=>{
     const idCli=o['Cliente']||'';
     const nombre=o['Des. Cliente']||idCli||'Sin nombre';
     if(!cliMap[idCli]) cliMap[idCli]={
@@ -584,8 +578,7 @@ function renderRuta(r, idx) {
     };
     cliMap[idCli].efectivo    +=cleanNum(o['Total Efectivo']);
     cliMap[idCli].transferencia+=cleanNum(o['Total Transferencia']);
-    cliMap[idCli].totalVenta  +=cleanNum(o['Total Venta']);
-    // Saldo crédito acumulado global del cliente
+    cliMap[idCli].totalVenta  +=cleanNum(o['Sub Total']);
     cliMap[idCli].saldoCredito=(ventasCredito[idCli]||0)-(abonosEfectivo[idCli]||0)-(abonosTransf[idCli]||0);
   });
 
