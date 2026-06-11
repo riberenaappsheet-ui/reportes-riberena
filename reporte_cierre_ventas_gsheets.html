@@ -356,6 +356,8 @@
 const SHEETS = {
   merRuta:         'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=0&single=true&output=csv',
   otProducto:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=392195505&single=true&output=csv',
+  merRutaOT:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=1169210938&single=true&output=csv',
+  merRutaOTAbono:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=1358557043&single=true&output=csv',
   gecCierres:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vSHCP8OtkOO0ea7lqFZeT8ttCHcESZGuQ2dhLgphEglvbA27-VvH3LVCzLMR2C2VuRGTOGulQ4i61Af/pub?gid=0&single=true&output=csv',
   despachoDetalle: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWTHaP6fZIDbxalv-CZvOUZvDtuxm70JFhpvXbei3fd3C0cjJn3tNLNt5kIrEJP8oO8lt_WXo2G61S/pub?gid=1458495664&single=true&output=csv',
   noVendido:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWTHaP6fZIDbxalv-CZvOUZvDtuxm70JFhpvXbei3fd3C0cjJn3tNLNt5kIrEJP8oO8lt_WXo2G61S/pub?gid=1322407571&single=true&output=csv'
@@ -409,7 +411,7 @@ function fechaGen(){ const n=new Date(); return n.toLocaleDateString('es-HN',{da
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── ESTADO GLOBAL ────────────────────────────────────────────────────────────
-let _rutas=[], _otRows=[], _despRows=[], _nvRows=[], _cierresRows=[];
+let _rutas=[], _otRows=[], _otProductoRows=[], _abonoRows=[], _despRows=[], _nvRows=[], _cierresRows=[];
 let _rutaActiva=null;
 
 // ── CARGA PRINCIPAL ──────────────────────────────────────────────────────────
@@ -422,15 +424,18 @@ async function cargarDatos() {
   ocultarReporte();
 
   try {
-    const [rutaRows,otRows,cierresRows,despRows,nvRows]=await Promise.all([
+    const [rutaRows,otProductoRows,otRows,abonoRows,cierresRows,despRows,nvRows]=await Promise.all([
       fetchCSV(SHEETS.merRuta),
       fetchCSV(SHEETS.otProducto),
+      fetchCSV(SHEETS.merRutaOT),
+      fetchCSV(SHEETS.merRutaOTAbono),
       fetchCSV(SHEETS.gecCierres),
       fetchCSV(SHEETS.despachoDetalle),
       fetchCSV(SHEETS.noVendido)
     ]);
 
-    _otRows=otRows; _despRows=despRows; _nvRows=nvRows; _cierresRows=cierresRows;
+    _otProductoRows=otProductoRows; _otRows=otRows; _abonoRows=abonoRows;
+    _despRows=despRows; _nvRows=nvRows; _cierresRows=cierresRows;
 
     _rutas=rutaRows.filter(r=>
       enRango(r['Fecha'],desde,hasta)&&
@@ -547,22 +552,51 @@ function renderRuta(r, idx) {
   });
   document.getElementById('total-unidades').textContent=U(totU);
 
-  // CLIENTES — agrupar ventas por cliente desde OT
+  // CLIENTES — desde MER_RUTA_OT filtrado por Ruta y fecha
+  // Columnas: Cliente, Des. Cliente, Tipo de Venta, Total Efectivo, Total Transferencia, Total Venta
+  const otRutaFiltrado=_otRows.filter(o=>
+    o['ELIMINADO']!=='Y'&&
+    o['Ruta']===rutaId&&
+    normFecha(o['Fecha'])===fechaNorm
+  );
+
+  // Calcular saldo crédito por cliente desde MER_RUTA_OT (ventas) y MER_RUTA_OT_ABONO (abonos)
+  // Saldo = SUM(Total Venta donde Tipo=Credito) - SUM(abonos Efectivo) - SUM(abonos Transferencia)
+  const ventasCredito={}, abonosEfectivo={}, abonosTransf={};
+  _otRows.filter(o=>o['ELIMINADO']!=='Y'&&(o['Tipo de Venta']||'').toUpperCase()==='CREDITO').forEach(o=>{
+    const cli=o['Cliente']||'';
+    ventasCredito[cli]=(ventasCredito[cli]||0)+cleanNum(o['Total Venta']);
+  });
+  _abonoRows.filter(a=>a['ELIMINADO']!=='Y').forEach(a=>{
+    const cli=a['Cliente']||'';
+    abonosEfectivo[cli]=(abonosEfectivo[cli]||0)+cleanNum(a['Efectivo']);
+    abonosTransf[cli]=(abonosTransf[cli]||0)+cleanNum(a['Transferencia']);
+  });
+
   const cliMap={};
-  otFiltrado.forEach(o=>{
-    const nombre=o['Des. Cliente']||o['Cliente']||'Sin nombre';
-    if(!cliMap[nombre]) cliMap[nombre]={cliente:nombre,tipoVenta:'Contado',efectivo:0,transferencia:0,totalVenta:0,saldoCredito:0};
-    cliMap[nombre].totalVenta+=cleanNum(o['Sub Total']);
-    // tipo de venta — si tiene precio 0 podría ser crédito; por ahora deducimos de los datos disponibles
+  otRutaFiltrado.forEach(o=>{
+    const idCli=o['Cliente']||'';
+    const nombre=o['Des. Cliente']||idCli||'Sin nombre';
+    if(!cliMap[idCli]) cliMap[idCli]={
+      idCli, cliente:nombre,
+      tipoVenta:o['Tipo de Venta']||'Contado',
+      efectivo:0, transferencia:0, totalVenta:0, saldoCredito:0
+    };
+    cliMap[idCli].efectivo    +=cleanNum(o['Total Efectivo']);
+    cliMap[idCli].transferencia+=cleanNum(o['Total Transferencia']);
+    cliMap[idCli].totalVenta  +=cleanNum(o['Total Venta']);
+    // Saldo crédito acumulado global del cliente
+    cliMap[idCli].saldoCredito=(ventasCredito[idCli]||0)-(abonosEfectivo[idCli]||0)-(abonosTransf[idCli]||0);
   });
 
   const tbC=document.getElementById('tabla-clientes');
   tbC.innerHTML='';
   let sE=0,sT=0,sV=0;
-  Object.values(cliMap).forEach((row,idx)=>{
-    sV+=row.totalVenta;
-    const tipo=(row.tipoVenta||'').toUpperCase();
-    const tipoBadge=tipo==='CREDITO'||tipo==='CRÉDITO'
+  Object.values(cliMap).forEach((row)=>{
+    sE+=row.efectivo; sT+=row.transferencia; sV+=row.totalVenta;
+    const tipo=(row.tipoVenta||'').trim().toUpperCase();
+    const esCredito=tipo==='CREDITO'||tipo==='CRÉDITO';
+    const tipoBadge=esCredito
       ?'<span style="background:#FEE2E2;color:#DC2626;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap">CRÉDITO</span>'
       :'<span style="background:#DCFCE7;color:#059669;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap">CONTADO</span>';
     const tr=document.createElement('tr');
