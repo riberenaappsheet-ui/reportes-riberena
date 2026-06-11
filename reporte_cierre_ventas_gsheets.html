@@ -566,9 +566,16 @@ function renderRuta(r, idx) {
     abonosTransf[cli]=(abonosTransf[cli]||0)+cleanNum(a['Transferencia']);
   });
 
-  // Usar otFiltrado (MER_RUTA_OT_PRODUCTO) que ya está filtrado por ruta+fecha y funciona
+  // MER_RUTA_OT — cabecera de orden (una fila por cliente), tiene Tipo de Venta, Total Efectivo, Total Transferencia, Total Venta
+  const otCabecera=_otRows.filter(o=>
+    o['ELIMINADO']!=='Y'&&
+    o['Ruta']===rutaId&&
+    normFecha(o['Fecha'])===fechaNorm
+  );
+
+  // Construir cliMap desde MER_RUTA_OT (cabecera) — tipo de venta y montos correctos por cliente
   const cliMap={};
-  otFiltrado.forEach(o=>{
+  otCabecera.forEach(o=>{
     const idCli=o['Cliente']||'';
     const nombre=o['Des. Cliente']||idCli||'Sin nombre';
     if(!cliMap[idCli]) cliMap[idCli]={
@@ -578,9 +585,24 @@ function renderRuta(r, idx) {
     };
     cliMap[idCli].efectivo    +=cleanNum(o['Total Efectivo']);
     cliMap[idCli].transferencia+=cleanNum(o['Total Transferencia']);
-    cliMap[idCli].totalVenta  +=cleanNum(o['Sub Total']);
+    cliMap[idCli].totalVenta  +=cleanNum(o['Total Venta']);
     cliMap[idCli].saldoCredito=(ventasCredito[idCli]||0)-(abonosEfectivo[idCli]||0)-(abonosTransf[idCli]||0);
   });
+
+  // Si MER_RUTA_OT no tiene datos para esta ruta, caer en otFiltrado como respaldo
+  if(Object.keys(cliMap).length===0){
+    otFiltrado.forEach(o=>{
+      const idCli=o['Cliente']||'';
+      const nombre=o['Des. Cliente']||idCli||'Sin nombre';
+      if(!cliMap[idCli]) cliMap[idCli]={
+        idCli, cliente:nombre,
+        tipoVenta:o['Tipo de Venta']||'Contado',
+        efectivo:0, transferencia:0, totalVenta:0, saldoCredito:0
+      };
+      cliMap[idCli].totalVenta+=cleanNum(o['Sub Total']);
+      cliMap[idCli].saldoCredito=(ventasCredito[idCli]||0)-(abonosEfectivo[idCli]||0)-(abonosTransf[idCli]||0);
+    });
+  }
 
   const tbC=document.getElementById('tabla-clientes');
   tbC.innerHTML='';
