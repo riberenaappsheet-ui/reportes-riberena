@@ -566,12 +566,22 @@ function renderRuta(r, idx) {
     abonosTransf[cli]=(abonosTransf[cli]||0)+cleanNum(a['Transferencia']);
   });
 
-  // MER_RUTA_OT — cabecera de orden (una fila por cliente), tiene Tipo de Venta, Total Efectivo, Total Transferencia, Total Venta
-  const otCabecera=_otRows.filter(o=>
-    o['ELIMINADO']!=='Y'&&
-    o['Ruta']===rutaId&&
-    normFecha(o['Fecha'])===fechaNorm
-  );
+  // MER_RUTA_OT — cabecera de orden (una fila por cliente)
+  // Debug: ver columnas reales de la primera fila
+  if(_otRows.length>0){
+    console.log('MER_RUTA_OT columnas:', Object.keys(_otRows[0]));
+    console.log('MER_RUTA_OT primera fila:', _otRows[0]);
+    console.log('Buscando Ruta:', rutaId, '| Fecha norm:', fechaNorm);
+    console.log('Ejemplo fecha OT:', normFecha(_otRows[0]['Fecha']||_otRows[0]['FECHA']||''));
+  }
+  // Intentar múltiples variantes del campo Ruta
+  const otCabecera=_otRows.filter(o=>{
+    if(o['ELIMINADO']==='Y') return false;
+    const oRuta=o['Ruta']||o['RUTA']||o['ID_RUTA']||o['ruta']||'';
+    const oFecha=normFecha(o['Fecha']||o['FECHA']||'');
+    return oRuta===rutaId && oFecha===fechaNorm;
+  });
+  console.log('otCabecera encontrados:', otCabecera.length);
 
   // Construir cliMap desde MER_RUTA_OT (cabecera) — tipo de venta y montos correctos por cliente
   const cliMap={};
