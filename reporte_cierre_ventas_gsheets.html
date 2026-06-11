@@ -523,7 +523,7 @@ function renderRuta(r, idx) {
   // PRODUCTOS — desde MER_RUTA_OT_PRODUCTO filtrado por Ruta y fecha
   const rutaId=r['RUTA'];
   const fechaNorm=normFecha(r['Fecha']);
-  const otFiltrado=_otRows.filter(o=>
+  const otFiltrado=_otProductoRows.filter(o=>
     o['ELIMINADO']!=='Y'&&
     o['Ruta']===rutaId&&
     normFecha(o['Fecha'])===fechaNorm
