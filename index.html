@@ -60,6 +60,9 @@
   .card-tag.cierre { background: rgba(0,180,216,.1); color: #0A7A94; }
   .card-tag.inventario { background: rgba(5,150,105,.1); color: #065F46; }
   .card-tag.regalias { background: rgba(217,119,6,.1); color: #92400E; }
+  .card.facturas::before { background: #7C3AED; }
+  .card-icon.facturas { background: rgba(124,58,237,.1); color: #7C3AED; }
+  .card-tag.facturas { background: rgba(124,58,237,.1); color: #4C1D95; }
   .card-arrow { font-size: 16px; color: var(--gris-texto); }
 
   /* INFO ROW */
@@ -138,6 +141,16 @@
         <div class="card-desc">Productos entregados como regalía por cliente y ruta. Gráfico de frecuencia y desglose detallado.</div>
         <div class="card-footer">
           <span class="card-tag regalias">MER_RUTA_OT_PRODUCTO</span>
+          <span class="card-arrow"><i class="ti ti-arrow-right"></i></span>
+        </div>
+      </a>
+
+      <a class="card facturas" href="reporte_facturas.html">
+        <div class="card-icon facturas"><i class="ti ti-file-invoice"></i></div>
+        <div class="card-title">Facturas por Ruta</div>
+        <div class="card-desc">Facturas registradas por ruta con referencia, nombre, RTN, montos e imagen del documento de Drive.</div>
+        <div class="card-footer">
+          <span class="card-tag facturas">MER_RUTA_OT_FACTURA</span>
           <span class="card-arrow"><i class="ti ti-arrow-right"></i></span>
         </div>
       </a>
