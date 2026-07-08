@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Facturas — Ribereña</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul:      #0A2342;
+    --azul-med:  #164474;
+    --azul-claro:#1A6BAF;
+    --acento:    #00B4D8;
+    --blanco:    #FFFFFF;
+    --gris-bg:   #F4F6FA;
+    --gris-borde:#CBD5E1;
+    --gris-texto:#64748B;
+    --verde:     #059669;
+    --verde-bg:  #DCFCE7;
+    --verde-text:#166534;
+    --rojo:      #DC2626;
+    --rojo-bg:   #FEE2E2;
+    --rojo-text: #991B1B;
+    --morado:    #7C3AED;
+    --morado-bg: #EDE9FE;
+    --morado-text:#4C1D95;
+    --radio:     6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gris-bg); color: var(--azul); font-size: 13px; line-height: 1.5; min-height: 100vh; }
+
+  /* HEADER */
+  .top-header { background: var(--azul); color: var(--blanco); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .top-header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-wrap { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.10); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .logo-wrap img { width: 28px; height: 28px; object-fit: contain; filter: brightness(0) invert(1); }
+  .top-header-titles .sup { font-size: 9px; color: var(--acento); letter-spacing: 1.5px; text-transform: uppercase; }
+  .top-header-titles h1 { font-family: 'DM Serif Display', serif; font-size: 17px; font-weight: 400; line-height: 1.2; }
+  .top-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .nav-pill { font-size: 11px; font-weight: 600; color: var(--acento); text-decoration: none; border: 1px solid rgba(0,180,216,.3); background: rgba(0,180,216,.08); padding: 5px 12px; border-radius: 20px; white-space: nowrap; transition: background .15s; }
+  .nav-pill:hover { background: rgba(0,180,216,.18); }
+  .updated-tag { font-size: 10px; color: rgba(255,255,255,.45); }
+
+  /* FILTROS */
+  .filtros-bar { background: var(--blanco); border-bottom: 1px solid var(--gris-borde); padding: 10px 28px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .filtros-bar label { font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .5px; }
+  .filtros-bar input[type="date"] { border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 6px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--azul); background: var(--blanco); outline: none; }
+  .filtros-bar input[type="date"]:focus { border-color: var(--acento); }
+  .btn-cargar { background: var(--azul); color: var(--blanco); border: none; border-radius: var(--radio); padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
+  .btn-cargar:hover { opacity: .85; }
+  .btn-cargar:disabled { opacity: .5; cursor: not-allowed; }
+  .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESUMEN */
+  .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; padding: 20px 28px 0; }
+  .card-stat { background: var(--blanco); border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 13px 14px; text-align: center; }
+  .card-stat .num { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; margin-bottom: 4px; color: var(--azul); }
+  .card-stat .lbl { font-size: 10px; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; font-weight: 600; }
+  .card-stat.acento .num { color: var(--acento); }
+  .card-stat.verde .num { color: var(--verde); }
+
+  /* MAIN */
+  .main { padding: 16px 28px; }
+  .sec-titulo { font-size: 10px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: .6px; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .sec-titulo::before { content:''; display:block; width:3px; height:12px; background:var(--acento); border-radius:2px; }
+
+  /* RUTA CARDS */
+  .rutas-grid { display: flex; flex-direction: column; gap: 10px; }
+  .ruta-card { background: var(--blanco); border: 1px solid var(--gris-borde); border-left: 4px solid var(--acento); border-radius: var(--radio); overflow: hidden; }
+  .ruta-header { padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; gap: 12px; flex-wrap: wrap; }
+  .ruta-header:hover { background: var(--gris-bg); }
+  .ruta-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--acento); background: rgba(0,180,216,.1); padding: 2px 8px; border-radius: 20px; }
+  .ruta-nombre { font-weight: 600; font-size: 13px; color: var(--azul); }
+  .ruta-fecha { font-size: 11px; color: var(--gris-texto); font-family: 'DM Mono', monospace; }
+  .ruta-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .badge-fact { font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: var(--morado-bg); color: var(--morado-text); white-space: nowrap; }
+  .badge-total { font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: var(--verde-bg); color: var(--verde-text); white-space: nowrap; font-family: 'DM Mono', monospace; }
+  .chevron { font-size: 13px; color: var(--gris-texto); transition: transform .2s; }
+  .ruta-card.open .chevron { transform: rotate(180deg); }
+
+  /* DETALLE FACTURAS */
+  .ruta-detalle { display: none; border-top: 1px solid var(--gris-borde); }
+  .ruta-card.open .ruta-detalle { display: block; }
+
+  /* TABLA FACTURAS */
+  .fact-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .fact-table thead tr { background: var(--azul); }
+  .fact-table th { padding: 8px 12px; text-align: left; font-size: 10px; font-weight: 600; color: var(--blanco); text-transform: uppercase; letter-spacing: .4px; }
+  .fact-table th.r { text-align: right; }
+  .fact-table td { padding: 9px 12px; border-top: 1px solid var(--gris-borde); color: var(--azul); vertical-align: middle; }
+  .fact-table td.r { text-align: right; font-family: 'DM Mono', monospace; font-size: 11.5px; }
+  .fact-table tr:nth-child(even) td { background: var(--gris-bg); }
+  .fact-table tr:hover td { background: #EFF8FF !important; }
+  .fact-table tfoot tr { background: var(--azul-med); }
+  .fact-table tfoot td { padding: 8px 12px; font-weight: 600; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--blanco); text-align: right; border-top: none; }
+  .fact-table tfoot td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-size: 11px; }
+
+  /* REF FACTURA */
+  .ref-badge { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; background: var(--morado-bg); color: var(--morado-text); padding: 2px 8px; border-radius: 4px; }
+
+  /* IMAGEN DRIVE */
+  .btn-imagen { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid rgba(0,180,216,.3); background: rgba(0,180,216,.08); color: var(--acento); text-decoration: none; white-space: nowrap; transition: background .15s; cursor: pointer; }
+  .btn-imagen:hover { background: rgba(0,180,216,.18); }
+  .btn-imagen.sin-doc { border-color: var(--gris-borde); background: none; color: var(--gris-texto); cursor: default; }
+
+  /* MODAL IMAGEN */
+  .img-overlay { position: fixed; inset: 0; background: rgba(10,35,66,.8); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .img-overlay.open { opacity: 1; pointer-events: all; }
+  .img-modal { background: var(--blanco); border-radius: 12px; overflow: hidden; max-width: 680px; width: 100%; box-shadow: 0 20px 60px rgba(10,35,66,.4); transform: scale(.95); transition: transform .2s; }
+  .img-overlay.open .img-modal { transform: scale(1); }
+  .img-modal-header { background: var(--azul); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .img-modal-title { font-family: 'DM Serif Display', serif; font-size: 15px; color: var(--blanco); }
+  .img-modal-close { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.1); border: none; color: var(--blanco); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .img-modal-close:hover { background: rgba(255,255,255,.25); }
+  .img-modal-body { padding: 16px; text-align: center; min-height: 200px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  .img-modal-body img { max-width: 100%; max-height: 480px; border-radius: var(--radio); object-fit: contain; }
+  .img-loading { color: var(--gris-texto); font-size: 12px; }
+  .img-open-link { font-size: 11px; color: var(--azul-claro); text-decoration: none; font-weight: 600; }
+  .img-open-link:hover { text-decoration: underline; }
+
+  /* ESTADO / ERROR */
+  .estado { text-align: center; padding: 60px 24px; color: var(--gris-texto); }
+  .estado .ico { font-size: 38px; margin-bottom: 12px; }
+  .estado h3 { font-family: 'DM Serif Display', serif; font-size: 18px; font-weight: 400; color: var(--azul); margin-bottom: 6px; }
+  .estado p { font-size: 12px; line-height: 1.6; max-width: 340px; margin: 0 auto; }
+  .error-box { background: var(--rojo-bg); border: 1px solid #FECACA; border-radius: var(--radio); padding: 10px 16px; color: var(--rojo-text); font-size: 12px; margin: 14px 28px; }
+
+  /* FOOTER */
+  .page-footer { background: var(--azul); color: rgba(255,255,255,.4); padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: .6px; margin-top: 32px; }
+  .page-footer strong { color: var(--acento); }
+
+  @media (max-width: 600px) {
+    .top-header, .filtros-bar, .main, .resumen { padding-left: 14px; padding-right: 14px; }
+    .fact-table { font-size: 11px; }
+    .fact-table th, .fact-table td { padding: 7px 8px; }
+  }
+  @media print {
+    .top-header, .filtros-bar, .page-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .filtros-bar, .nav-pill, .btn-imagen { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-header">
+  <div class="top-header-left">
+    <div class="logo-wrap">
+      <img src="https://drive.google.com/thumbnail?id=1-AjJ5DUWQtqArYaK9aQOxixJwG32frEG&sz=w128" alt="Ribereña"
+           onerror="this.parentElement.innerHTML='<span style=\'font-family:DM Serif Display,serif;font-size:16px;color:#00B4D8\'>R</span>'">
+    </div>
+    <div class="top-header-titles">
+      <div class="sup">Distribución</div>
+      <h1>Facturas por Ruta</h1>
+    </div>
+  </div>
+  <div class="top-header-right">
+    <a href="index.html" class="nav-pill">🏠 Inicio</a>
+    <a href="reporte_cierre_ventas_gsheets.html" class="nav-pill">📋 Cierre</a>
+    <a href="reporte_inventario_rutas.html" class="nav-pill">📦 Inventario</a>
+    <a href="reporte_regalias.html" class="nav-pill">🎁 Regalías</a>
+    <span class="updated-tag" id="ultima-act"></span>
+  </div>
+</div>
+
+<div class="filtros-bar">
+  <label>Desde</label>
+  <input type="date" id="fecha-inicio">
+  <span style="color:var(--gris-borde);">—</span>
+  <label>Hasta</label>
+  <input type="date" id="fecha-fin">
+  <button class="btn-cargar" id="btn-cargar" onclick="cargarDatos()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btn-texto">Cargar datos</span>
+  </button>
+</div>
+
+<div id="error-container"></div>
+
+<div class="resumen" id="resumen" style="display:none;">
+  <div class="card-stat"><div class="num" id="s-rutas">—</div><div class="lbl">Rutas</div></div>
+  <div class="card-stat acento"><div class="num" id="s-facturas">—</div><div class="lbl">Facturas</div></div>
+  <div class="card-stat verde"><div class="num" id="s-subtotal">—</div><div class="lbl">Sub Total</div></div>
+  <div class="card-stat"><div class="num" id="s-isv">—</div><div class="lbl">ISV</div></div>
+  <div class="card-stat verde"><div class="num" id="s-total">—</div><div class="lbl">Total</div></div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="estado">
+    <div class="ico">🧾</div>
+    <h3>Facturas por Ruta</h3>
+    <p>Selecciona un rango de fechas y presiona <strong>Cargar datos</strong> para ver las facturas registradas por ruta.</p>
+  </div>
+</div>
+
+<div class="page-footer">
+  <span>Ribereña Distribución · Sistema de Gestión de Rutas</span>
+  <strong>Facturas por Ruta</strong>
+  <span>v2.0</span>
+</div>
+
+<!-- MODAL IMAGEN -->
+<div class="img-overlay" id="img-overlay" onclick="cerrarImagen(event)">
+  <div class="img-modal">
+    <div class="img-modal-header">
+      <div class="img-modal-title" id="img-modal-title">Documento de Referencia</div>
+      <button class="img-modal-close" onclick="document.getElementById('img-overlay').classList.remove('open');document.body.style.overflow='';">✕</button>
+    </div>
+    <div class="img-modal-body" id="img-modal-body">
+      <div class="img-loading">Cargando imagen...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEETS = {
+  merRuta:    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=0&single=true&output=csv',
+  merRutaOT:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=1169210938&single=true&output=csv',
+  facturas:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWQe1MHjBbSlsFf7UDg7eCmXV0Mq7dfYY1s_bJAqqAlLCh2LqTFVQZHfX_mYpbQ1084e-KnZJwlXuL/pub?gid=1101684661&single=true&output=csv'
+};
+
+function parseCSVLine(line){const r=[];let c='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'&&!inQ){inQ=true;}else if(ch==='"'&&inQ){inQ=false;}else if(ch===','&&!inQ){r.push(c.trim());c='';}else{c+=ch;}}r.push(c.trim());return r;}
+function parseCSV(text){const lines=text.trim().split('\n');if(lines.length<2)return[];const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));return lines.slice(1).map(line=>{const vals=parseCSVLine(line);const obj={};headers.forEach((h,i)=>{obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,'');});return obj;}).filter(r=>Object.values(r).some(v=>v!==''));}
+async function fetchCSV(url){const r=await fetch(url);if(!r.ok)throw new Error(`HTTP ${r.status}`);return parseCSV(await r.text());}
+function normFecha(f){if(!f)return'';f=f.trim();if(/^\d{4}-\d{2}-\d{2}/.test(f))return f.substring(0,10);const p=f.split(/[\/\-]/);if(p.length===3){if(p[0].length===4)return`${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;return`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}return f;}
+function enRango(f,d,h){const n=normFecha(f);return n>=d&&n<=h;}
+function hoy(){return new Date().toISOString().split('T')[0];}
+const cleanNum=v=>parseFloat(String(v||0).replace(/,/g,''))||0;
+const L=v=>'L. '+(cleanNum(v)).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2});
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Extraer file ID de Drive de la ruta guardada en Documento Referencia
+function driveUrl(path){
+  if(!path||path.trim()==='') return null;
+  // Si ya es un ID de Drive (sin slashes)
+  const idMatch=path.match(/[-\w]{25,}/);
+  if(idMatch) return `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=w800`;
+  return null;
+}
+function driveViewUrl(path){
+  if(!path||path.trim()==='') return null;
+  const idMatch=path.match(/[-\w]{25,}/);
+  if(idMatch) return `https://drive.google.com/file/d/${idMatch[0]}/view`;
+  return null;
+}
+
+async function cargarDatos(){
+  const desde=document.getElementById('fecha-inicio').value;
+  const hasta=document.getElementById('fecha-fin').value;
+  if(!desde||!hasta){mostrarError('Selecciona un rango de fechas.');return;}
+  if(desde>hasta){mostrarError('La fecha inicio debe ser anterior a la fecha final.');return;}
+  setLoading(true);limpiarError();
+
+  try{
+    const [rutaRows,otRows,factRows]=await Promise.all([
+      fetchCSV(SHEETS.merRuta),
+      fetchCSV(SHEETS.merRutaOT),
+      fetchCSV(SHEETS.facturas)
+    ]);
+
+    // Filtrar rutas por fecha
+    const rutasFiltradas=rutaRows.filter(r=>
+      r['ELIMINADO']!=='Y'&&enRango(r['Fecha'],desde,hasta)&&r['RUTA']
+    );
+    if(rutasFiltradas.length===0){mostrarVacio('Sin rutas en el período','No se encontraron rutas entre las fechas seleccionadas.');setLoading(false);return;}
+
+    // Mapa ID_OT -> RUTA  (join MER_RUTA_OT → MER_RUTA)
+    const rutasFechaSet=new Set(rutasFiltradas.map(r=>r['RUTA']));
+    const otMap={};
+    otRows.filter(o=>o['ELIMINADO']!=='Y').forEach(o=>{
+      const idOt=o['ID_OT']||o['_RowNumber']||'';
+      const ruta=o['Ruta']||o['RUTA']||'';
+      if(idOt&&ruta) otMap[idOt]=ruta;
+    });
+
+    // Filtrar facturas cuyo ID_OT apunta a una ruta en el rango
+    const factFiltradas=factRows.filter(f=>{
+      if(f['ELIMINADO']==='Y') return false;
+      const ruta=otMap[f['ID_OT']||''];
+      return ruta && rutasFechaSet.has(ruta);
+    });
+
+    if(factFiltradas.length===0){mostrarVacio('Sin facturas en el período','No se encontraron facturas registradas para las rutas del período seleccionado.');setLoading(false);return;}
+
+    // Agregar ruta a cada factura
+    factFiltradas.forEach(f=>{ f._ruta=otMap[f['ID_OT']||'']||''; });
+
+    // Agrupar por ruta
+    const porRuta={};
+    rutasFiltradas.forEach(r=>{
+      porRuta[r['RUTA']]={
+        ruta:r['RUTA'],
+        responsable:r['Responsable']||'',
+        fecha:r['Fecha']||'',
+        fechaNorm:normFecha(r['Fecha']||''),
+        facturas:[]
+      };
+    });
+    factFiltradas.forEach(f=>{
+      if(porRuta[f._ruta]) porRuta[f._ruta].facturas.push(f);
+    });
+
+    // Solo rutas con facturas, orden descendente por fecha
+    const rutas=Object.values(porRuta)
+      .filter(r=>r.facturas.length>0)
+      .sort((a,b)=>b.fechaNorm.localeCompare(a.fechaNorm));
+
+    // Totales globales
+    const totFact=factFiltradas.length;
+    const totSub=factFiltradas.reduce((s,f)=>s+cleanNum(f['Sub Total']),0);
+    const totIsv=factFiltradas.reduce((s,f)=>s+cleanNum(f['ISV']),0);
+    const totTot=factFiltradas.reduce((s,f)=>s+cleanNum(f['Total']),0);
+
+    document.getElementById('s-rutas').textContent=rutas.length;
+    document.getElementById('s-facturas').textContent=totFact;
+    document.getElementById('s-subtotal').textContent=L(totSub);
+    document.getElementById('s-isv').textContent=L(totIsv);
+    document.getElementById('s-total').textContent=L(totTot);
+    document.getElementById('resumen').style.display='';
+    document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
+
+    renderReporte(rutas);
+
+  }catch(e){
+    mostrarError('No se pudieron cargar los datos.<br><small style="opacity:.7">'+e.message+'</small>');
+  }
+  setLoading(false);
+}
+
+function renderReporte(rutas){
+  let html='<div class="sec-titulo">'+rutas.length+' rutas con facturas</div><div class="rutas-grid">';
+
+  rutas.forEach((r,i)=>{
+    const totSub=r.facturas.reduce((s,f)=>s+cleanNum(f['Sub Total']),0);
+    const totIsv=r.facturas.reduce((s,f)=>s+cleanNum(f['ISV']),0);
+    const totTot=r.facturas.reduce((s,f)=>s+cleanNum(f['Total']),0);
+
+    const filas=r.facturas.map((f,fi)=>{
+      const docRef=f['Documento Referencia']||'';
+      const imgUrl=driveUrl(docRef);
+      const viewUrl=driveViewUrl(docRef);
+      let btnDoc='';
+      if(imgUrl){
+        btnDoc=`<button class="btn-imagen" onclick="verImagen('${esc(imgUrl)}','${esc(viewUrl||'')}','${esc(f['Referencia Factura']||'Factura')}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Ver
+        </button>`;
+      } else {
+        btnDoc='<span class="btn-imagen sin-doc">Sin doc.</span>';
+      }
+      return `<tr>
+        <td><span class="ref-badge">${esc(f['Referencia Factura']||'—')}</span></td>
+        <td>${esc(f['Nombre']||'—')}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px;">${esc(f['RTN']||'—')}</td>
+        <td class="r">${L(f['Sub Total'])}</td>
+        <td class="r">${L(f['ISV'])}</td>
+        <td class="r">${L(f['Total'])}</td>
+        <td style="text-align:center">${btnDoc}</td>
+      </tr>`;
+    }).join('');
+
+    html+=`<div class="ruta-card" id="rc-${i}">
+      <div class="ruta-header" onclick="tog(${i})">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="ruta-id">${esc(r.ruta)}</span>
+          <span class="ruta-nombre">${esc(r.responsable)}</span>
+          <span class="ruta-fecha">${esc(r.fecha)}</span>
+        </div>
+        <div class="ruta-badges">
+          <span class="badge-fact">🧾 ${r.facturas.length} factura${r.facturas.length!==1?'s':''}</span>
+          <span class="badge-total">${L(totTot)}</span>
+          <span class="chevron">▾</span>
+        </div>
+      </div>
+      <div class="ruta-detalle">
+        <table class="fact-table">
+          <thead><tr>
+            <th>Ref. Factura</th>
+            <th>Nombre</th>
+            <th>RTN</th>
+            <th class="r">Sub Total</th>
+            <th class="r">ISV</th>
+            <th class="r">Total</th>
+            <th style="text-align:center">Documento</th>
+          </tr></thead>
+          <tbody>${filas}</tbody>
+          <tfoot><tr>
+            <td colspan="3">Totales ruta ${esc(r.ruta)}</td>
+            <td>${L(totSub)}</td>
+            <td>${L(totIsv)}</td>
+            <td>${L(totTot)}</td>
+            <td></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  html+='</div>';
+  document.getElementById('main-content').innerHTML=html;
+}
+
+function tog(i){document.getElementById('rc-'+i).classList.toggle('open');}
+
+function verImagen(imgUrl, viewUrl, titulo){
+  document.getElementById('img-modal-title').textContent='Factura: '+titulo;
+  const body=document.getElementById('img-modal-body');
+  body.innerHTML='<div class="img-loading">Cargando imagen...</div>';
+  document.getElementById('img-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  const img=new Image();
+  img.onload=()=>{
+    body.innerHTML=`<img src="${imgUrl}" alt="Documento">
+      ${viewUrl?`<a href="${viewUrl}" target="_blank" class="img-open-link">↗ Abrir en Google Drive</a>`:''}`;
+  };
+  img.onerror=()=>{
+    body.innerHTML=viewUrl
+      ?`<div class="img-loading">No se puede previsualizar.</div><a href="${viewUrl}" target="_blank" class="img-open-link">↗ Abrir en Google Drive</a>`
+      :'<div class="img-loading">No se puede cargar el documento.</div>';
+  };
+  img.src=imgUrl;
+}
+
+function cerrarImagen(e){
+  if(e.target===document.getElementById('img-overlay')){
+    document.getElementById('img-overlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+}
+
+function setLoading(v){document.getElementById('spinner').style.display=v?'block':'none';document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';document.getElementById('btn-cargar').disabled=v;}
+function mostrarError(msg){document.getElementById('error-container').innerHTML=`<div class="error-box">⚠ ${msg}</div>`;document.getElementById('main-content').innerHTML='';document.getElementById('resumen').style.display='none';}
+function limpiarError(){document.getElementById('error-container').innerHTML='';}
+function mostrarVacio(t,d){document.getElementById('main-content').innerHTML=`<div class="estado"><div class="ico">🔍</div><h3>${t}</h3><p>${d}</p></div>`;document.getElementById('resumen').style.display='none';}
+
+document.getElementById('fecha-inicio').value=hoy();
+document.getElementById('fecha-fin').value=hoy();
+</script>
+</body>
+</html>
