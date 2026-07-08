@@ -238,22 +238,8 @@ function parseCSV(text){
   const lines=text.trim().split('\n');
   if(lines.length<2)return[];
   const headers=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
-  const nCols=headers.length;
   return lines.slice(1).map(line=>{
-    const raw=parseCSVLine(line);
-    // Si hay más columnas que headers, puede haber un campo de coordenadas no entrecomillado
-    // Detectar y fusionar: si raw[i] parece latitud y raw[i+1] parece longitud, unirlos
-    const vals=[];
-    let ri=0;
-    while(ri<raw.length){
-      const v=raw[ri];
-      // Detectar coordenada partida: número decimal seguido de número decimal negativo
-      if(ri+1<raw.length && /^-?\d+\.\d+$/.test(v) && /^\s*-?\d+\.\d+$/.test(raw[ri+1])){
-        vals.push(v+','+raw[ri+1]);ri+=2;
-      } else {
-        vals.push(v);ri++;
-      }
-    }
+    const vals=parseCSVLine(line);
     const obj={};
     headers.forEach((h,i)=>{obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,'');});
     return obj;
@@ -269,7 +255,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 // AppSheet storage URL builder
 // Formato de ruta: /FACTURAS DE VENTA//ID.Documento Referencia.HHMMSS.jpg
-const APP_NAME='Ribe%C3%B1aApp-753059166';
+const APP_NAME='Ribere%C3%B1aApp-753059166';
 const APP_ID='8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc';
 function appsheetImgUrl(path){
   if(!path||path.trim()==='') return null;
