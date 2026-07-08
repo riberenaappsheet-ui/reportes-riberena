@@ -229,19 +229,34 @@ const cleanNum=v=>parseFloat(String(v||0).replace(/,/g,''))||0;
 const L=v=>'L. '+(cleanNum(v)).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2});
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// Extraer file ID de Drive de la ruta guardada en Documento Referencia
+// Procesar ruta de imagen de Documento Referencia
+// AppSheet guarda rutas como: appsheet://data/TABLE/COL/ROWID/filename.jpg
+// o URLs completas de Drive/storage
 function driveUrl(path){
   if(!path||path.trim()==='') return null;
-  // Si ya es un ID de Drive (sin slashes)
-  const idMatch=path.match(/[-\w]{25,}/);
-  if(idMatch) return `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=w800`;
+  path=path.trim();
+  // URL completa de Drive thumbnail
+  if(path.includes('drive.google.com/thumbnail')) return path;
+  // URL de Drive file view → convertir a thumbnail
+  const driveMatch=path.match(/\/d\/([a-zA-Z0-9_-]{25,})\//);
+  if(driveMatch) return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`;
+  // URL de AppSheet storage → usar directamente como img src
+  if(path.startsWith('http')||path.startsWith('https')) return path;
+  // Ruta relativa AppSheet — no previsualizable directamente
   return null;
 }
 function driveViewUrl(path){
   if(!path||path.trim()==='') return null;
-  const idMatch=path.match(/[-\w]{25,}/);
-  if(idMatch) return `https://drive.google.com/file/d/${idMatch[0]}/view`;
+  path=path.trim();
+  const driveMatch=path.match(/\/d\/([a-zA-Z0-9_-]{25,})\//);
+  if(driveMatch) return `https://drive.google.com/file/d/${driveMatch[1]}/view`;
+  if(path.startsWith('http')||path.startsWith('https')) return path;
   return null;
+}
+// Log para debug de la primera factura con documento
+function debugDocRef(facturas){
+  const conDoc=facturas.find(f=>(f['Documento Referencia']||'').trim()!=='');
+  if(conDoc) console.log('Documento Referencia ejemplo:', JSON.stringify(conDoc['Documento Referencia']));
 }
 
 async function cargarDatos(){
@@ -280,6 +295,8 @@ async function cargarDatos(){
       return ruta && rutasFechaSet.has(ruta);
     });
 
+    // Debug: ver formato real de Documento Referencia
+    debugDocRef(factFiltradas);
     if(factFiltradas.length===0){mostrarVacio('Sin facturas en el período','No se encontraron facturas registradas para las rutas del período seleccionado.');setLoading(false);return;}
 
     // Agregar ruta a cada factura
