@@ -255,18 +255,53 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 // AppSheet storage URL builder
 // Formato de ruta: /FACTURAS DE VENTA//ID.Documento Referencia.HHMMSS.jpg
-const APP_NAME='Ribere%C3%B1aApp-753059166';
-const APP_ID='8a5fd5f4-b565-4aa9-913b-9b48bfa7b6dc';
-function appsheetImgUrl(path){
-  if(!path||path.trim()==='') return null;
-  path=path.trim();
-  if(path.startsWith('http')) return path;
-  // Ruta relativa AppSheet → URL de descarga
-  const encoded=encodeURIComponent(path);
-  return `https://www.appsheet.com/template/gettablefileurl?appName=${APP_NAME}&tableName=MER_RUTA_OT_FACTURA&fileName=${encoded}`;
+// ── ACCESO A IMÁGENES VÍA GOOGLE DRIVE API ───────────────────────────────────
+// La carpeta pública de Drive con las fotos de facturas
+const DRIVE_FOLDER_ID='1NBMsbdo_W76LLQhXWvniiRLJcOwM6ZZj';
+// API Key de Google (Drive API habilitada) — REEMPLAZAR con tu key
+const GOOGLE_API_KEY='AIzaSyA4mN6Vyn4bMp8nkV-O6hK7o1pkYpAQZFE';
+
+// Mapa nombre-archivo → fileId (se llena al cargar)
+let _driveFiles={};
+
+// Cargar el índice de archivos de la carpeta pública
+async function cargarIndiceDrive(){
+  try{
+    let pageToken='';
+    do {
+      const url=`https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents&key=${GOOGLE_API_KEY}&fields=nextPageToken,files(id,name)&pageSize=1000${pageToken?'&pageToken='+pageToken:''}`;
+      const resp=await fetch(url);
+      if(!resp.ok) break;
+      const data=await resp.json();
+      (data.files||[]).forEach(f=>{ _driveFiles[f.name]=f.id; });
+      pageToken=data.nextPageToken||'';
+    } while(pageToken);
+    console.log('Índice Drive cargado:', Object.keys(_driveFiles).length, 'archivos');
+  }catch(e){ console.warn('No se pudo cargar índice Drive:', e.message); }
 }
-function driveUrl(path){ return appsheetImgUrl(path); }
-function driveViewUrl(path){ return appsheetImgUrl(path); }
+
+// Extraer nombre de archivo del path de AppSheet
+function nombreArchivo(path){
+  if(!path) return '';
+  // /FACTURAS DE VENTA//a471c3da.Documento Referencia.162604.jpg → a471c3da.Documento Referencia.162604.jpg
+  const parts=path.split('/').filter(Boolean);
+  return parts[parts.length-1]||'';
+}
+
+function driveUrl(path){
+  if(!path||path.trim()==='') return null;
+  const nombre=nombreArchivo(path.trim());
+  const fileId=_driveFiles[nombre];
+  if(fileId) return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+  return null;
+}
+function driveViewUrl(path){
+  if(!path||path.trim()==='') return null;
+  const nombre=nombreArchivo(path.trim());
+  const fileId=_driveFiles[nombre];
+  if(fileId) return `https://drive.google.com/file/d/${fileId}/view`;
+  return null;
+}
 
 async function cargarDatos(){
   const desde=document.getElementById('fecha-inicio').value;
@@ -279,7 +314,8 @@ async function cargarDatos(){
     const [rutaRows,otRows,factRows]=await Promise.all([
       fetchCSV(SHEETS.merRuta),
       fetchCSV(SHEETS.merRutaOT),
-      fetchCSV(SHEETS.facturas)
+      fetchCSV(SHEETS.facturas),
+      cargarIndiceDrive()
     ]);
 
     // Filtrar rutas por fecha
