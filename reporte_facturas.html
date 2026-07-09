@@ -49,6 +49,14 @@
   .btn-cargar { background: var(--azul); color: var(--blanco); border: none; border-radius: var(--radio); padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; }
   .btn-cargar:hover { opacity: .85; }
   .btn-cargar:disabled { opacity: .5; cursor: not-allowed; }
+  .search-wrap { display: flex; align-items: center; gap: 6px; border: 1px solid var(--gris-borde); border-radius: var(--radio); padding: 5px 10px; background: var(--blanco); min-width: 240px; }
+  .search-wrap:focus-within { border-color: var(--acento); }
+  .search-wrap input { border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--azul); flex: 1; background: transparent; }
+  .search-wrap input::placeholder { color: var(--gris-texto); }
+  .search-wrap button { border: none; background: none; color: var(--gris-texto); cursor: pointer; font-size: 13px; padding: 0 2px; }
+  .search-wrap button:hover { color: var(--rojo); }
+  .highlight { background: #FEF08A; color: var(--azul); border-radius: 2px; padding: 0 1px; }
+  .no-result { text-align: center; padding: 40px; color: var(--gris-texto); font-size: 13px; }
   .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -173,6 +181,12 @@
     <div class="spinner" id="spinner"></div>
     <span id="btn-texto">Cargar datos</span>
   </button>
+  <div style="flex:1;"></div>
+  <div class="search-wrap" id="search-wrap" style="display:none;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gris-texto);flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="search-input" placeholder="Buscar por nombre o factura..." oninput="filtrarBusqueda()">
+    <button id="search-clear" onclick="limpiarBusqueda()" style="display:none;">✕</button>
+  </div>
 </div>
 
 <div id="error-container"></div>
@@ -263,6 +277,7 @@ const GOOGLE_API_KEY='AIzaSyA4mN6Vyn4bMp8nkV-O6hK7o1pkYpAQZFE';
 
 // Mapa nombre-archivo → fileId (se llena al cargar)
 let _driveFiles={};
+let _rutasData=[];
 
 // Cargar el índice de archivos de la carpeta pública
 async function cargarIndiceDrive(){
@@ -379,6 +394,8 @@ async function cargarDatos(){
     document.getElementById('resumen').style.display='';
     document.getElementById('ultima-act').textContent='Actualizado '+new Date().toLocaleTimeString('es');
 
+    _rutasData=rutas;
+    document.getElementById('search-wrap').style.display='flex';
     renderReporte(rutas);
 
   }catch(e){
@@ -387,7 +404,8 @@ async function cargarDatos(){
   setLoading(false);
 }
 
-function renderReporte(rutas){
+function renderReporte(rutas, q){
+  q=q||'';
   let html='<div class="sec-titulo">'+rutas.length+' rutas con facturas</div><div class="rutas-grid">';
 
   rutas.forEach((r,i)=>{
@@ -409,9 +427,9 @@ function renderReporte(rutas){
         btnDoc='<span class="btn-imagen sin-doc">Sin doc.</span>';
       }
       return `<tr>
-        <td><span class="ref-badge">${esc(f['Referencia Factura']||'—')}</span></td>
-        <td>${esc(f['Nombre']||'—')}</td>
+        <td>${resaltar(f['Nombre']||'—', q)}</td>
         <td style="font-family:'DM Mono',monospace;font-size:11px;">${esc(f['RTN']||'—')}</td>
+        <td><span class="ref-badge">${resaltar(f['Referencia Factura']||'—', q)}</span></td>
         <td class="r">${L(f['Sub Total'])}</td>
         <td class="r">${L(f['ISV'])}</td>
         <td class="r">${L(f['Total'])}</td>
@@ -435,9 +453,9 @@ function renderReporte(rutas){
       <div class="ruta-detalle">
         <table class="fact-table">
           <thead><tr>
-            <th>Ref. Factura</th>
             <th>Nombre</th>
             <th>RTN</th>
+            <th>Ref. Factura</th>
             <th class="r">Sub Total</th>
             <th class="r">ISV</th>
             <th class="r">Total</th>
@@ -486,6 +504,42 @@ function cerrarImagen(e){
     document.getElementById('img-overlay').classList.remove('open');
     document.body.style.overflow='';
   }
+}
+
+function filtrarBusqueda(){
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  document.getElementById('search-clear').style.display=q?'block':'none';
+  if(!q){ renderReporte(_rutasData); return; }
+
+  // Filtrar facturas por Nombre o Referencia Factura
+  const rutasFiltradas=_rutasData.map(r=>{
+    const facturasMatch=r.facturas.filter(f=>{
+      const nombre=(f['Nombre']||'').toLowerCase();
+      const ref=(f['Referencia Factura']||'').toLowerCase();
+      return nombre.includes(q)||ref.includes(q);
+    });
+    return {...r, facturas:facturasMatch};
+  }).filter(r=>r.facturas.length>0);
+
+  if(rutasFiltradas.length===0){
+    document.getElementById('main-content').innerHTML='<div class="no-result">🔍 Sin resultados para "'+esc(q)+'"</div>';
+    return;
+  }
+  renderReporte(rutasFiltradas, q);
+  // Auto-expandir todas las rutas al buscar
+  document.querySelectorAll('.ruta-card').forEach(card=>card.classList.add('open'));
+}
+function limpiarBusqueda(){
+  document.getElementById('search-input').value='';
+  document.getElementById('search-clear').style.display='none';
+  renderReporte(_rutasData);
+}
+function resaltar(texto, q){
+  if(!q) return esc(texto);
+  const t=String(texto||'');
+  const idx=t.toLowerCase().indexOf(q.toLowerCase());
+  if(idx<0) return esc(t);
+  return esc(t.substring(0,idx))+'<span class="highlight">'+esc(t.substring(idx,idx+q.length))+'</span>'+esc(t.substring(idx+q.length));
 }
 
 function setLoading(v){document.getElementById('spinner').style.display=v?'block':'none';document.getElementById('btn-texto').textContent=v?'Cargando...':'Cargar datos';document.getElementById('btn-cargar').disabled=v;}
